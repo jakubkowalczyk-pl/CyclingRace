@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html ng-app="cyclingRace">
+<head>
+    <title>Cycling Race</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <script src="js/angular.js"></script>
+    <script src="js/cycling-race.js"></script>
+</head>
+<body cycling-race>
+    <table>
+    <tr ng-repeat="biker in bikers track by biker.name">
+        <td>{{::biker.name}}</td>
+        <td>{{biker.bike.speed}}</td>
+        <td>{{biker.bike.leftPedal.position}}</td>
+        <td>{{biker.bike.rightPedal.position}}</td>
+    </tr>
+    </table>
+</body>
+</html>

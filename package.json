@@ -1,0 +1,16 @@
+{
+    "name": "CyclingRace",
+    "version": "v1.0.0",
+    "author": {
+        "name": "Jakub Kowalczyk",
+        "url": "http://jgallery.jakubkowalczyk.pl/",
+        "email": "info@jakubkowalczyk.pl"
+    },
+    "devDependencies": {
+        "grunt": "~0.4.5",
+        "grunt-contrib-concat": "~0.5.0",
+        "grunt-contrib-watch": "~0.6.1",
+        "grunt-contrib-uglify": "~0.6.0",
+        "grunt-contrib-less": "~0.12.0"
+    }
+}
