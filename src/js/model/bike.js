@@ -44,6 +44,8 @@ app.factory('cyclingRace.Bike', ['cyclingRace.Pedal', 'cyclingRace.Control', '$i
         pressLeftPedal: function(){
             var bike = this;
             
+            this.stopPressLeftPedal();
+            this.rotateCrank(bike.leftPedal);
             this.pressingLeftPedal = $interval(function(){
                 bike.rotateCrank(bike.leftPedal);
             }, 40);
@@ -56,6 +58,8 @@ app.factory('cyclingRace.Bike', ['cyclingRace.Pedal', 'cyclingRace.Control', '$i
         pressRightPedal: function(){
             var bike = this;
             
+            this.stopPressRightPedal();
+            this.rotateCrank(bike.rightPedal);
             this.pressingRightPedal = $interval(function(){
                 bike.rotateCrank(bike.rightPedal);
             }, 40);
@@ -70,8 +74,8 @@ app.factory('cyclingRace.Bike', ['cyclingRace.Pedal', 'cyclingRace.Control', '$i
          */
         rotateCrank: function(pedal){
             if(pedal.position < Pedal.POSITION_DOWN){
-                this.leftPedal.position++;
-                this.rightPedal.position++;
+                this.leftPedal.position += 10;
+                this.rightPedal.position += 10;
                 if(this.leftPedal.position === 360){
                     this.leftPedal.position = 0;
                 }
