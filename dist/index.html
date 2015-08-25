@@ -11,7 +11,7 @@
     <table>
     <tr ng-repeat="biker in bikers track by biker.name">
         <td>{{::biker.name}}</td>
-        <td>{{biker.bike.speed}}</td>
+        <td>{{biker.bike.crankSpeed | number:0}}</td>
         <td>{{biker.bike.leftPedal.position}}</td>
         <td>{{biker.bike.rightPedal.position}}</td>
     </tr>

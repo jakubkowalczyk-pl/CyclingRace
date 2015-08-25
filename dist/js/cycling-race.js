@@ -2,7 +2,7 @@
 * CyclingRace v1.0.0
 * http://jgallery.jakubkowalczyk.pl/
 *
-* Date: 2015-08-23
+* Date: 2015-08-25
 */
 ( function() {
     "use strict";
@@ -17,6 +17,12 @@ app.factory('cyclingRace.Bike', ['cyclingRace.Pedal', 'cyclingRace.Control', '$i
          * @type {number}
          */
         this.speed = 0;
+        
+        /**
+         * Number of rotates per second
+         * @type {number}
+         */
+        this.crankSpeed = 0;
         
         /**
          * @type {Pedal}
@@ -46,6 +52,11 @@ app.factory('cyclingRace.Bike', ['cyclingRace.Pedal', 'cyclingRace.Control', '$i
          * @type {Promise|null}
          */
         this.pressingRightPedal = null;
+        
+        /**
+         * @type {number}
+         */
+        this.pressingInterval = 40;
     };
     
     Bike.prototype = {
@@ -54,29 +65,39 @@ app.factory('cyclingRace.Bike', ['cyclingRace.Pedal', 'cyclingRace.Control', '$i
         pressLeftPedal: function(){
             var bike = this;
             
-            this.stopPressLeftPedal();
-            this.rotateCrank(bike.leftPedal);
-            this.pressingLeftPedal = $interval(function(){
-                bike.rotateCrank(bike.leftPedal);
-            }, 40);
+            if(this.pressingRightPedal){
+                this.stopPressPedals();
+            }
+            else if(!this.pressingLeftPedal){
+                this.pressingLeftPedal = $interval(function(){
+                    bike.rotateCrank(bike.leftPedal);
+                }, this.pressingInterval);
+            }
         },
         
         stopPressLeftPedal: function(){
             $interval.cancel(this.pressingLeftPedal);
+            this.pressingLeftPedal = null;
+            this.crankSpeed = 0;
         },
         
         pressRightPedal: function(){
             var bike = this;
-            
-            this.stopPressRightPedal();
-            this.rotateCrank(bike.rightPedal);
-            this.pressingRightPedal = $interval(function(){
-                bike.rotateCrank(bike.rightPedal);
-            }, 40);
+           
+            if(this.pressingLeftPedal){
+                this.stopPressPedals();
+            }
+            else if(!this.pressingRightPedal){
+                this.pressingRightPedal = $interval(function(){
+                    bike.rotateCrank(bike.rightPedal);
+                }, this.pressingInterval);
+            }
         },
         
         stopPressRightPedal: function(){
             $interval.cancel(this.pressingRightPedal);
+            this.pressingRightPedal = null;
+            this.crankSpeed = 0;
         },
         
         /**
@@ -84,15 +105,26 @@ app.factory('cyclingRace.Bike', ['cyclingRace.Pedal', 'cyclingRace.Control', '$i
          */
         rotateCrank: function(pedal){
             if(pedal.position < Pedal.POSITION_DOWN){
-                this.leftPedal.position += 10;
-                this.rightPedal.position += 10;
-                if(this.leftPedal.position === 360){
+                var move = 10;
+                
+                this.crankSpeed = move / 360 * 60000 / this.pressingInterval;
+                this.leftPedal.position += move;
+                this.rightPedal.position += move;
+                if(this.leftPedal.position >= 360){
                     this.leftPedal.position = 0;
                 }
-                if(this.rightPedal.position === 360){
+                if(this.rightPedal.position >= 360){
                     this.rightPedal.position = 0;
                 }
             }
+            else {
+                this.crankSpeed = 0;
+            }
+        },
+        
+        stopPressPedals: function(){
+            this.stopPressLeftPedal();
+            this.stopPressRightPedal();
         }
     };
     
@@ -190,7 +222,7 @@ app.directive('cyclingRace', ['cyclingRace.Biker', 'cyclingRace.Bike', function(
             scope.bikers = [];
             
             scope.bikers.push(new Biker({
-                name: 'Kubkuś',
+                name: 'Player1',
                 bike: new Bike()
             }));
         }

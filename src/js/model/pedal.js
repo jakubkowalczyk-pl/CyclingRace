@@ -6,26 +6,26 @@ app.factory('cyclingRace.Pedal', function(){
      */
     var Pedal = function(pedal){
         pedal = pedal || {};
-        
+
         /**
          * @type {number}
          */
         this.position = pedal.position || 0;
     };
-    
+
     /**
      * @type {number}
      */
     Pedal.POSITION_UP = 0;
-    
+
     /**
      * @type {number}
      */
     Pedal.POSITION_DOWN = 180;
-    
+
     Pedal.prototype = {
         constructor: Pedal
     };
-    
+
     return Pedal;
 });
