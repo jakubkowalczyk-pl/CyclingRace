@@ -4,17 +4,46 @@
     <title>Cycling Race</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width">
-    <script src="js/angular.js"></script>
-    <script src="js/cycling-race.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 <body cycling-race>
-    <table>
+    <!--
+    <div class=" sky">
+        <div class="sun"></div>
+             
+    </div>
+    <div class="grass-perspective">
+        <div class="grass">
+            <div class="route">
+                <div class="line"
+                     style="animation-play-state: {{ bikers[0].bike.speed > 0 ? 'running' : 'paused' }};
+                            animation-duration: {{ (5000 - 50 * bikers[0].bike.speed)/1000 }}s"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="crank" style="transform: rotate({{ bikers[0].bike.leftPedal.position }}deg);"></div>
+    -->
+    <table class="board">
+    <tr>
+        <td>nick</td>
+        <td>rear derailleur</td>
+        <td>speed</td>
+        <td>cadence</td>
+        <td>left pedal</td>
+        <td>right pedal</td>
+    </tr>
     <tr ng-repeat="biker in bikers track by biker.name">
         <td>{{::biker.name}}</td>
-        <td>{{biker.bike.crankSpeed | number:0}}</td>
+        <td>{{biker.bike.rearDerailleur}}</td>
+        <td>{{biker.bike.speed | number:0}} km/h</td>
+        <td>{{biker.bike.cadence | number:0}}</td>
         <td>{{biker.bike.leftPedal.position}}</td>
         <td>{{biker.bike.rightPedal.position}}</td>
     </tr>
     </table>
+    <script src="js/angular.js"></script>
+    <script src="js/three.min.js"></script>
+    <script src="js/cycling-race.js"></script>
 </body>
 </html>
