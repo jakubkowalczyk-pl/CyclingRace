@@ -27,16 +27,20 @@
     <table class="board">
     <tr>
         <td>nick</td>
+        <td>time</td>
         <td>rear derailleur</td>
         <td>speed</td>
+        <td>distance</td>
         <td>cadence</td>
         <td>left pedal</td>
         <td>right pedal</td>
     </tr>
     <tr ng-repeat="biker in bikers track by biker.name">
         <td>{{::biker.name}}</td>
+        <td>{{time | date: 'mm:ss'}}</td>
         <td>{{biker.bike.rearDerailleur}}</td>
         <td>{{biker.bike.speed | number:0}} km/h</td>
+        <td>{{biker.bike.distance | number:0}} m</td>
         <td>{{biker.bike.cadence | number:0}}</td>
         <td>{{biker.bike.leftPedal.position}}</td>
         <td>{{biker.bike.rightPedal.position}}</td>

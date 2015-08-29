@@ -2,6 +2,11 @@ app.directive('cyclingRace', [function(){
     return {
         link: function(scope){
             /**
+             * @type {Date}
+             */
+            scope.time = new Date(0);
+            
+            /**
              * @type {Biker[]}
              */
             scope.bikers = [];
@@ -13,6 +18,18 @@ app.directive('cyclingRace', [function(){
             
             scope.bikers[0].bike.biker = scope.bikers[0];
             
+            /**
+             * @type {Route}
+             */
+            scope.route = new Route({
+                distance: 5000
+            });
+            
+            new Race({
+                bikers: scope.bikers,
+                route: scope.route
+            });
+            
             var view = new View( scope.bikers[0].bike );
     
             function render(){
@@ -23,6 +40,7 @@ app.directive('cyclingRace', [function(){
             render();
             
             setInterval(function(){
+                scope.time.setMilliseconds(scope.time.getMilliseconds() + 40);
                 scope.$digest();
             }, 40);
         }

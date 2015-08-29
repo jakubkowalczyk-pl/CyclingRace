@@ -8,12 +8,12 @@
     "use strict";
     
     var app = angular.module('cyclingRace', []);
-    
-    var CyclingRace = {};
 /**
  * @constructor
  */
 var Bike = function(){
+    var self = this;
+    
     /**
      * @type {number}
      */
@@ -24,6 +24,11 @@ var Bike = function(){
      * @type {number}
      */
     this.cadence = 0;
+    
+    /**
+     * @type {number} in meters
+     */
+    this.distance = 0;
 
     /**
      * The highest gear in rear derailleur
@@ -57,12 +62,12 @@ var Bike = function(){
     });
 
     /**
-     * @type {Promise|null}
+     * @type {number|null}
      */
     this.pressingLeftPedal = null;
 
     /**
-     * @type {Promise|null}
+     * @type {number|null}
      */
     this.pressingRightPedal = null;
 
@@ -82,6 +87,10 @@ var Bike = function(){
     this.gravity = new Gravity({
         object: this
     });
+    
+    setInterval(function(){
+        self.distance += self.speed * 1000 / 60 / 60 / 25;
+    }, 40);
 };
 
 Bike.prototype = {
@@ -270,6 +279,42 @@ Pedal.prototype = {
     constructor: Pedal
 };
 /**
+ * @constructor
+ * @param {object} race={}
+ * @param {Route} race.route
+ * @param {Biker[]} race.bikers
+ */
+var Race = function(race){
+    /**
+     * @type {Route}
+     */
+    this.route = race.route;
+    
+    /**
+     * @type {Biker[]}
+     */
+    this.bikers = race.bikers;
+};
+
+Race.prototype = {
+    constructor: Race
+};
+/**
+ * @constructor
+ * @param {object} route={}
+ * @param {number} route.distance
+ */
+var Route = function(route){
+    /**
+     * @type {number}
+     */
+    this.route = route.distance;
+};
+
+Route.prototype = {
+    constructor: Route
+};
+/**
  * @construcotr
  * @param {Bike} bike
  */
@@ -328,14 +373,14 @@ View.prototype = {
 
     createGrass: function(){
         var grassTexture = (function(){
-                    var texture = THREE.ImageUtils.loadTexture( "./img/grass.jpg" );
+            var texture = THREE.ImageUtils.loadTexture( "./img/grass.jpg" );
 
-                    texture.wrapS = THREE.RepeatWrapping; 
-                    texture.wrapT = THREE.RepeatWrapping; 
-                    texture.repeat.set( 12, 60 );
+            texture.wrapS = THREE.RepeatWrapping; 
+            texture.wrapT = THREE.RepeatWrapping; 
+            texture.repeat.set( 12, 60 );
 
-                    return texture;
-                })();
+            return texture;
+        })();
 
         var grass = new THREE.Mesh(
             new THREE.PlaneGeometry( 10, 20, 32 ),
@@ -351,14 +396,14 @@ View.prototype = {
 
     createRoad: function(){
         var roadTexture = (function(){
-                    var texture = THREE.ImageUtils.loadTexture( "./img/Asphalt-913.jpg" );
+            var texture = THREE.ImageUtils.loadTexture( "./img/Asphalt-913.jpg" );
 
-                    texture.wrapS = THREE.RepeatWrapping; 
-                    texture.wrapT = THREE.RepeatWrapping; 
-                    texture.repeat.set( 2, 60 );
+            texture.wrapS = THREE.RepeatWrapping; 
+            texture.wrapT = THREE.RepeatWrapping; 
+            texture.repeat.set( 2, 60 );
 
-                    return texture;
-                })();
+            return texture;
+        })();
 
         var road = new THREE.Mesh(
             new THREE.PlaneGeometry( .5, 20, 32 ),
@@ -376,6 +421,11 @@ app.directive('cyclingRace', [function(){
     return {
         link: function(scope){
             /**
+             * @type {Date}
+             */
+            scope.time = new Date(0);
+            
+            /**
              * @type {Biker[]}
              */
             scope.bikers = [];
@@ -387,6 +437,18 @@ app.directive('cyclingRace', [function(){
             
             scope.bikers[0].bike.biker = scope.bikers[0];
             
+            /**
+             * @type {Route}
+             */
+            scope.route = new Route({
+                distance: 5000
+            });
+            
+            new Race({
+                bikers: scope.bikers,
+                route: scope.route
+            });
+            
             var view = new View( scope.bikers[0].bike );
     
             function render(){
@@ -397,6 +459,7 @@ app.directive('cyclingRace', [function(){
             render();
             
             setInterval(function(){
+                scope.time.setMilliseconds(scope.time.getMilliseconds() + 40);
                 scope.$digest();
             }, 40);
         }

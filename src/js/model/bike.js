@@ -2,6 +2,8 @@
  * @constructor
  */
 var Bike = function(){
+    var self = this;
+    
     /**
      * @type {number}
      */
@@ -12,6 +14,11 @@ var Bike = function(){
      * @type {number}
      */
     this.cadence = 0;
+    
+    /**
+     * @type {number} in meters
+     */
+    this.distance = 0;
 
     /**
      * The highest gear in rear derailleur
@@ -45,12 +52,12 @@ var Bike = function(){
     });
 
     /**
-     * @type {Promise|null}
+     * @type {number|null}
      */
     this.pressingLeftPedal = null;
 
     /**
-     * @type {Promise|null}
+     * @type {number|null}
      */
     this.pressingRightPedal = null;
 
@@ -70,6 +77,10 @@ var Bike = function(){
     this.gravity = new Gravity({
         object: this
     });
+    
+    setInterval(function(){
+        self.distance += self.speed * 1000 / 60 / 60 / 25;
+    }, 40);
 };
 
 Bike.prototype = {
