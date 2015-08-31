@@ -2,7 +2,7 @@
 * CyclingRace v1.0.0
 * http://jgallery.jakubkowalczyk.pl/
 *
-* Date: 2015-08-29
+* Date: 2015-08-31
 */
 ( function() {
     "use strict";
@@ -10,8 +10,10 @@
     var app = angular.module('cyclingRace', []);
 /**
  * @constructor
+ * @param {object} bike
+ * @param {Route} bike.route
  */
-var Bike = function(){
+var Bike = function(bike){
     var self = this;
     
     /**
@@ -88,8 +90,23 @@ var Bike = function(){
         object: this
     });
     
+    /**
+     * @type {Route}
+     */
+    this.route = bike.route;
+    console.log(this.route);
+    
+    /**
+     * @type {Timer}
+     */
+    this.timer = new Timer();
+    
+    this.timer.start();
     setInterval(function(){
         self.distance += self.speed * 1000 / 60 / 60 / 25;
+        if(self.distance >= self.route.distance){
+            self.timer.stop();
+        }
     }, 40);
 };
 
@@ -308,11 +325,41 @@ var Route = function(route){
     /**
      * @type {number}
      */
-    this.route = route.distance;
+    this.distance = route.distance;
 };
 
 Route.prototype = {
     constructor: Route
+};
+/**
+ * @constructor
+ */
+var Timer = function(){
+    /**
+     * @type {Date}
+     */
+    this.value = new Date(0);
+    
+    /**
+     * @type {number|null}
+     */
+    this.interval = null;
+};
+
+Timer.prototype = {
+    constructor: Timer,
+    
+    start: function(){
+        var self = this;
+        
+        this.interval = setInterval(function(){
+            self.value.setMilliseconds(self.value.getMilliseconds() + 1000);
+        }, 1000);
+    },
+    
+    stop: function(){
+        clearInterval(this.interval);
+    }
 };
 /**
  * @construcotr
@@ -342,6 +389,11 @@ var View = function( bike ){
     this.scene.add( this.grass );
 
     this.camera.position.z = 1.25;
+    
+//    var loader = new THREE.JSONLoader();
+//    loader.load('./models/bike.json', function(geometry){
+//        alert('loaded');
+//    });
 
     setInterval(function(){
         var offsetDiff = bike.speed * .001;
@@ -419,11 +471,13 @@ View.prototype = {
 };
 app.directive('cyclingRace', [function(){
     return {
-        link: function(scope){
+        link: function(scope){            
             /**
-             * @type {Date}
+             * @type {Route}
              */
-            scope.time = new Date(0);
+            scope.route = new Route({
+                distance: 100
+            });
             
             /**
              * @type {Biker[]}
@@ -432,17 +486,12 @@ app.directive('cyclingRace', [function(){
             
             scope.bikers.push(new Biker({
                 name: 'Player1',
-                bike: new Bike()
+                bike: new Bike({
+                    route: scope.route
+                })
             }));
             
             scope.bikers[0].bike.biker = scope.bikers[0];
-            
-            /**
-             * @type {Route}
-             */
-            scope.route = new Route({
-                distance: 5000
-            });
             
             new Race({
                 bikers: scope.bikers,
@@ -458,8 +507,12 @@ app.directive('cyclingRace', [function(){
 
             render();
             
+            /**
+             * @type {Timer}
+             */
+            scope.timer = scope.bikers[0].bike.timer;
+            
             setInterval(function(){
-                scope.time.setMilliseconds(scope.time.getMilliseconds() + 40);
                 scope.$digest();
             }, 40);
         }

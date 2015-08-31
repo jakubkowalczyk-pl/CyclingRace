@@ -7,7 +7,7 @@ var Route = function(route){
     /**
      * @type {number}
      */
-    this.route = route.distance;
+    this.distance = route.distance;
 };
 
 Route.prototype = {

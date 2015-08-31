@@ -1,10 +1,12 @@
 app.directive('cyclingRace', [function(){
     return {
-        link: function(scope){
+        link: function(scope){            
             /**
-             * @type {Date}
+             * @type {Route}
              */
-            scope.time = new Date(0);
+            scope.route = new Route({
+                distance: 100
+            });
             
             /**
              * @type {Biker[]}
@@ -13,17 +15,12 @@ app.directive('cyclingRace', [function(){
             
             scope.bikers.push(new Biker({
                 name: 'Player1',
-                bike: new Bike()
+                bike: new Bike({
+                    route: scope.route
+                })
             }));
             
             scope.bikers[0].bike.biker = scope.bikers[0];
-            
-            /**
-             * @type {Route}
-             */
-            scope.route = new Route({
-                distance: 5000
-            });
             
             new Race({
                 bikers: scope.bikers,
@@ -39,8 +36,12 @@ app.directive('cyclingRace', [function(){
 
             render();
             
+            /**
+             * @type {Timer}
+             */
+            scope.timer = scope.bikers[0].bike.timer;
+            
             setInterval(function(){
-                scope.time.setMilliseconds(scope.time.getMilliseconds() + 40);
                 scope.$digest();
             }, 40);
         }

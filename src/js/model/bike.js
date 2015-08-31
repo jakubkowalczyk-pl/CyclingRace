@@ -1,7 +1,9 @@
 /**
  * @constructor
+ * @param {object} bike
+ * @param {Route} bike.route
  */
-var Bike = function(){
+var Bike = function(bike){
     var self = this;
     
     /**
@@ -78,8 +80,23 @@ var Bike = function(){
         object: this
     });
     
+    /**
+     * @type {Route}
+     */
+    this.route = bike.route;
+    console.log(this.route);
+    
+    /**
+     * @type {Timer}
+     */
+    this.timer = new Timer();
+    
+    this.timer.start();
     setInterval(function(){
         self.distance += self.speed * 1000 / 60 / 60 / 25;
+        if(self.distance >= self.route.distance){
+            self.timer.stop();
+        }
     }, 40);
 };
 

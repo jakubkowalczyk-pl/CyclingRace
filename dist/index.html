@@ -37,7 +37,7 @@
     </tr>
     <tr ng-repeat="biker in bikers track by biker.name">
         <td>{{::biker.name}}</td>
-        <td>{{time | date: 'mm:ss'}}</td>
+        <td>{{timer.value | date: 'mm:ss'}}</td>
         <td>{{biker.bike.rearDerailleur}}</td>
         <td>{{biker.bike.speed | number:0}} km/h</td>
         <td>{{biker.bike.distance | number:0}} m</td>
@@ -47,7 +47,7 @@
     </tr>
     </table>
     <script src="js/angular.js"></script>
-    <script src="js/three.min.js"></script>
+    <script src="js/three.js"></script>
     <script src="js/cycling-race.js"></script>
 </body>
 </html>
