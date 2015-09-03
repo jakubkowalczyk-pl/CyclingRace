@@ -47,9 +47,9 @@ var Bike = function(bike){
     });
 
     /**
-     * @type {Control}
+     * @type {BikeControl}
      */
-    this.control = new Control({
+    this.control = new BikeControl({
         bike: this
     });
 
@@ -84,7 +84,6 @@ var Bike = function(bike){
      * @type {Route}
      */
     this.route = bike.route;
-    console.log(this.route);
     
     /**
      * @type {Timer}

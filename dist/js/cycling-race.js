@@ -2,12 +2,51 @@
 * CyclingRace v1.0.0
 * http://jgallery.jakubkowalczyk.pl/
 *
-* Date: 2015-08-31
+* Date: 2015-09-03
 */
 ( function() {
     "use strict";
     
     var app = angular.module('cyclingRace', []);
+/**
+ * @constructor
+ * @param {object} control
+ * @param {Bike} control.bike
+ */
+var BikeControl = function(control){
+    angular.element(document).bind('keydown', function(event){
+        switch(event.keyCode){
+            case 37:
+                control.bike.pressLeftPedal();
+                break;
+            case 39:
+                control.bike.pressRightPedal();
+                break;
+            case 35:
+                control.bike.pressBrake();
+                break;
+        }
+    }).bind('keyup', function(event){
+        switch(event.keyCode){
+            case 37:
+                control.bike.stopPressLeftPedal();
+                break;
+            case 39:
+                control.bike.stopPressRightPedal();
+                break;
+            case 38:
+                control.bike.rearDerailleurUp();
+                break;
+            case 40:
+                control.bike.rearDerailleurDown();
+                break;
+        }
+    });
+};
+
+BikeControl.prototype = {
+    constructor: BikeControl
+};
 /**
  * @constructor
  * @param {object} bike
@@ -57,9 +96,9 @@ var Bike = function(bike){
     });
 
     /**
-     * @type {Control}
+     * @type {BikeControl}
      */
-    this.control = new Control({
+    this.control = new BikeControl({
         bike: this
     });
 
@@ -94,7 +133,6 @@ var Bike = function(bike){
      * @type {Route}
      */
     this.route = bike.route;
-    console.log(this.route);
     
     /**
      * @type {Timer}
@@ -211,45 +249,6 @@ Biker.prototype = {
 };
 /**
  * @constructor
- * @param {object} control
- * @param {Bike} control.bike
- */
-var Control = function(control){
-    angular.element(document).bind('keydown', function(event){
-        switch(event.keyCode){
-            case 37:
-                control.bike.pressLeftPedal();
-                break;
-            case 39:
-                control.bike.pressRightPedal();
-                break;
-            case 35:
-                control.bike.pressBrake();
-                break;
-        }
-    }).bind('keyup', function(event){
-        switch(event.keyCode){
-            case 37:
-                control.bike.stopPressLeftPedal();
-                break;
-            case 39:
-                control.bike.stopPressRightPedal();
-                break;
-            case 38:
-                control.bike.rearDerailleurUp();
-                break;
-            case 40:
-                control.bike.rearDerailleurDown();
-                break;
-        }
-    });
-};
-
-Control.prototype = {
-    constructor: Control
-};
-/**
- * @constructor
  * @param {object} gravity
  * @param {object} gravity.object
  * @param {number} gravity.object.speed
@@ -362,6 +361,46 @@ Timer.prototype = {
     }
 };
 /**
+ * @constructor
+ * @param {object} control
+ * @param {View} control.view
+ */
+var ViewControl = function(control){
+    angular.element(document).bind('keydown', function(event){
+        
+        
+        switch(event.keyCode){
+            case 65: //a
+                control.view.camera.position.x -= .1;
+                break;
+                
+            case 68: //d
+                control.view.camera.position.x += .1;
+                break;
+                
+            case 87: //w
+                control.view.camera.position.z -= .1;
+                break;
+                
+            case 83: //s
+                control.view.camera.position.z += .1;
+                break;
+                
+            case 81: //q
+                control.view.camera.rotation.y -= Math.PI/40;
+                break;
+                
+            case 69: //e
+                control.view.camera.rotation.y += Math.PI/40;
+                break;
+        }
+    });
+};
+
+ViewControl.prototype = {
+    constructor: ViewControl
+};
+/**
  * @construcotr
  * @param {Bike} bike
  */
@@ -370,7 +409,8 @@ var View = function( bike ){
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-    this.renderer = new THREE.WebGLRenderer();
+    this.renderer = new THREE.WebGLRenderer();    
+    this.loader = new THREE.JSONLoader();
     this.sky = this.createSky();
     this.grass = this.createGrass();
     this.road = this.createRoad();
@@ -382,18 +422,18 @@ var View = function( bike ){
 
     this.grass.add( this.road );
 
-    this.grass.rotateOnAxis(new THREE.Vector3(-1,0,0), 1.5);
+    this.grass.rotation.x = -Math.PI/2;
     this.grass.translateY(-10);
 
     this.scene.add( this.sky );
     this.scene.add( this.grass );
-
-    this.camera.position.z = 1.25;
     
-//    var loader = new THREE.JSONLoader();
-//    loader.load('./models/bike.json', function(geometry){
-//        alert('loaded');
-//    });
+    this.createBike();
+
+    this.camera.position.y = .2;
+    this.camera.position.z = 4.99;
+    this.camera.rotateX(-Math.PI/6);
+    window.camera = this.camera;
 
     setInterval(function(){
         var offsetDiff = bike.speed * .001;
@@ -401,6 +441,13 @@ var View = function( bike ){
         self.road.texture.offset.y += offsetDiff;
         self.grass.texture.offset.y += offsetDiff;
     }, 40);
+    
+    new ViewControl({
+        view: this
+    });
+    
+    var light = new THREE.AmbientLight( 0xcfcfcf );
+    this.scene.add( light );
 };
 
 View.prototype = {
@@ -408,7 +455,7 @@ View.prototype = {
 
     createSky: function(){
         return new THREE.Mesh(
-            new THREE.PlaneGeometry( 10, 20, 32 ),
+            new THREE.PlaneGeometry( 20, 20, 32 ),
             new THREE.MeshBasicMaterial({
                 map: (function(){
                     var texture = THREE.ImageUtils.loadTexture( "./img/sky.jpg" );
@@ -435,7 +482,7 @@ View.prototype = {
         })();
 
         var grass = new THREE.Mesh(
-            new THREE.PlaneGeometry( 10, 20, 32 ),
+            new THREE.PlaneGeometry( 20, 20, 32 ),
             new THREE.MeshBasicMaterial({
                 map: grassTexture
             })
@@ -467,6 +514,26 @@ View.prototype = {
         road.texture = roadTexture;
 
         return road;
+    },
+    
+    createBike: function(){
+        var self = this;
+        
+        this.loader.load(
+            './models/bike.json',
+            function ( geometry, materials ) {
+                var material = new THREE.MeshFaceMaterial( materials );
+                var object = new THREE.Mesh( geometry, material );
+
+                object.scale.x = object.scale.y = object.scale.z = .0125;
+                self.road.add( object );
+                object.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
+                object.rotateOnAxis(new THREE.Vector3(0,1,0), Math.PI);
+                object.position.y = 5.03;
+                object.position.z = .069;
+                window.bike = object;
+            }
+        );
     }
 };
 app.directive('cyclingRace', [function(){
