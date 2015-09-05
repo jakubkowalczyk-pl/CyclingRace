@@ -1,7 +1,6 @@
 module.exports = function( grunt ) {
     var banner = '/*!\n' +
-                    '* <%= pkg.name %> <%= pkg.version %>\n' + 
-                    '* http://jgallery.jakubkowalczyk.pl/\n' +
+                    '* <%= pkg.name %> <%= pkg.version %>\n' +
                     '*\n' +
                     '* Date: <%= grunt.template.today("yyyy-mm-dd") %>\n' +
                     '*/\n';
@@ -30,6 +29,7 @@ module.exports = function( grunt ) {
         concat: ( function() {
             var src = [
                 'src/js/start.frag.js',
+                'src/js/base_model/**/*.js',
                 'src/js/model/**/*.js',
                 'src/js/directives/**/*.js',
                 'src/js/start.frag.js',

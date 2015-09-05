@@ -1,6 +1,5 @@
 /*!
 * CyclingRace v1.0.0
-* http://jgallery.jakubkowalczyk.pl/
 *
 * Date: 2015-09-05
 */
@@ -8,6 +7,56 @@
     "use strict";
     
     var app = angular.module('cyclingRace', []);
+/**
+ * @constructor
+ * @param {object} onRouteObject={}
+ * @param {Route} onRouteObject.route
+ */
+var OnRouteObject = function(onRouteObject){
+    var self = this;
+    
+    /**
+     * @type {Route}
+     */
+    this.route = onRouteObject.route;
+    
+    /**
+     * @type {number}
+     */
+    this.speed = 0;
+    
+    /**
+     * @type {number} in meters
+     */
+    this.distance = 0;
+
+    /**
+     * @type {Gravity}
+     */
+    this.gravity = new Gravity({
+        object: this
+    });
+    
+    /**
+     * @type {Timer}
+     */
+    this.timer = new Timer();
+    
+    setInterval(function(){
+        self.distance += self.speed * 1000 / 60 / 60 / 25;
+        if(self.distance >= self.route.distance){
+            self.timer.stop();
+        }
+    }, 40);
+};
+
+OnRouteObject.prototype = {
+    constructor: OnRouteObject,
+
+    pressBrake: function(){
+        this.speed = 0;
+    }
+};
 /**
  * @constructor
  * @param {object} control
@@ -49,27 +98,18 @@ BikeControl.prototype = {
 };
 /**
  * @constructor
+ * @extends OnRouteObject
  * @param {object} bike
  * @param {Route} bike.route
  */
-var Bike = function(bike){
-    var self = this;
-    
-    /**
-     * @type {number}
-     */
-    this.speed = 0;
+var Bike = function(bike){    
+    OnRouteObject.call(this, bike);
 
     /**
      * Number of rotates per second
      * @type {number}
      */
     this.cadence = 0;
-    
-    /**
-     * @type {number} in meters
-     */
-    this.distance = 0;
 
     /**
      * The highest gear in rear derailleur
@@ -121,33 +161,9 @@ var Bike = function(bike){
      * @type {Biker|null}
      */
     this.biker = null;
-
-    /**
-     * @type {Gravity}
-     */
-    this.gravity = new Gravity({
-        object: this
-    });
-    
-    /**
-     * @type {Route}
-     */
-    this.route = bike.route;
-    
-    /**
-     * @type {Timer}
-     */
-    this.timer = new Timer();
-    
-    setInterval(function(){
-        self.distance += self.speed * 1000 / 60 / 60 / 25;
-        if(self.distance >= self.route.distance){
-            self.timer.stop();
-        }
-    }, 40);
 };
 
-Bike.prototype = {
+Bike.prototype = angular.extend(OnRouteObject.prototype, {
     constructor: Bike,
 
     pressLeftPedal: function(){
@@ -188,10 +204,6 @@ Bike.prototype = {
         this.cadence = 0;
     },
 
-    pressBrake: function(){
-        this.speed = 0;
-    },
-
     rearDerailleurUp: function(){
         this.rearDerailleur = Math.min(this.rearDerailleur+1, this.maxRearDerailleur);
     },
@@ -230,7 +242,7 @@ Bike.prototype = {
         this.stopPressLeftPedal();
         this.stopPressRightPedal();
     }
-};
+});
 /**
  * @constructor
  * @param {object} biker
