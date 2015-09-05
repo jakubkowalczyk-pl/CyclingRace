@@ -39,7 +39,7 @@ var View = function( bike ){
         self.grass.texture.offset.y += offsetDiff;
     }, 40);
     
-    new ViewControl({
+    this.control = new ViewControl({
         view: this
     });
     

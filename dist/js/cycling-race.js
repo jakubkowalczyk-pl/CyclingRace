@@ -441,7 +441,7 @@ var View = function( bike ){
         self.grass.texture.offset.y += offsetDiff;
     }, 40);
     
-    new ViewControl({
+    this.control = new ViewControl({
         view: this
     });
     
@@ -578,7 +578,7 @@ app.directive('cyclingRace', [function(){
             
             scope.bikers[0].bike.biker = scope.bikers[0];
             
-            new Race({
+            var race = new Race({
                 bikers: scope.bikers,
                 route: scope.route
             });
