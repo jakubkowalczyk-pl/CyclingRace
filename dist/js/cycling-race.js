@@ -2,7 +2,7 @@
 * CyclingRace v1.0.0
 * http://jgallery.jakubkowalczyk.pl/
 *
-* Date: 2015-09-03
+* Date: 2015-09-05
 */
 ( function() {
     "use strict";
@@ -433,7 +433,6 @@ var View = function( bike ){
     this.camera.position.y = .2;
     this.camera.position.z = 4.99;
     this.camera.rotateX(-Math.PI/6);
-    window.camera = this.camera;
 
     setInterval(function(){
         var offsetDiff = bike.speed * .001;
@@ -531,7 +530,26 @@ View.prototype = {
                 object.rotateOnAxis(new THREE.Vector3(0,1,0), Math.PI);
                 object.position.y = 5.03;
                 object.position.z = .069;
-                window.bike = object;
+            }
+        );
+    },
+    
+    createTree: function(){
+        var self = this;
+        
+        this.loader.load(
+            './models/tree.json',
+            function ( geometry, materials ) {
+                var material = new THREE.MeshFaceMaterial( materials );
+                var object = new THREE.Mesh( geometry, material );
+
+                object.scale.x = object.scale.y = object.scale.z = .3;
+                self.road.add( object );
+                object.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
+                object.position.y = 5.03;
+                object.position.z = .069;
+                object.position.x = .15;
+                window.tree = object;
             }
         );
     }
