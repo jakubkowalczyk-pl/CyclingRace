@@ -8,47 +8,6 @@ canvas {
     display: block;
 }
 
-.sky {
-    background: #3333ff;
-    bottom: 40%;
-    top: 0;
-    right:0;
-    left:0;
-    position: absolute;
-        
-}
-
-.grass-perspective {
-    perspective: 2000px;
-    top: 60%;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    position: absolute;
-    overflow: hidden;
-}
-
-.grass {
-    background: greenyellow;
-    transform: rotateX(80deg);
-    transform-origin: 50% 0;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: -376%;
-    position: absolute;
-}
-.sun{
-    background: yellow;
-    height: 120px;
-    width: 120px;
-    border-radius: 100%;
-    right: 7%;
-    bottom: 60%;
-    position: absolute;
-    box-shadow: 0 0 44px gold;
-        
-}
 .overlay {
     background: rgba(0,0,0,.7);
     top: 0;
@@ -87,66 +46,4 @@ button:hover {
     top: 0;
     left: 0;
     position: absolute;
-}
-
-.route {
-    background: #555;
-    top: 0;
-    left: 20%;
-    right: 20%;
-    bottom: 0;
-    position: absolute;
-}
-
-.route .line {
-    width: 30px;
-    margin-left: -15px;
-    top: 0;
-    left: 50%;
-    top: -100%;
-    bottom: 0;
-    background: linear-gradient(to bottom, #fff 25%, transparent 26%,
-        transparent 50%, #fff 51%,
-        #fff 75%, transparent 76%
-        );
-    background-size: 100% 25%;
-    animation-timing-function: linear;
-    animation-play-state: paused;
-    animation-iteration-count: infinite;
-    animation-name: routeLineMove;
-    position: absolute;
-}
-
-.crank {
-    width: 30px;
-    height: 30px;
-    border-radius: 100%;
-    background: #bbb;
-    right: 40px;
-    bottom: 40px;
-    position: absolute;
-}
-
-.crank:after,
-.crank:before {
-    width: 8px;
-    height: 30px;
-    margin-left: -4px;
-    border-radius: 15px;
-    background: #bbb;
-    left: 50%;
-    top: 50%;
-    content: "";
-    position: absolute;
-}
-
-.crank:before {
-    top: auto;
-    bottom: 50%;
-}
-
-@keyframes routeLineMove {    
-    to {
-        transform: translateY(12.5%);
-    }
 }
