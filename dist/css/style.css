@@ -49,6 +49,38 @@ canvas {
     box-shadow: 0 0 44px gold;
         
 }
+.overlay {
+    background: rgba(0,0,0,.7);
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: absolute;
+    z-index: 1;
+}
+button {
+    padding: .7em;
+    border: 0;
+    background: #fff;
+    color: #000;
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: 18px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: .2s all;
+}
+button:hover {
+    background: #09d;
+    color: #fff;
+}
+.menu {
+    width: 320px;
+    margin: 60px auto;
+}
+.menu button {
+    width: 100%;
+}
 .board {
     text-align: center;
     color: #fff;

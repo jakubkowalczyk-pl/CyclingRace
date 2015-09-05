@@ -1,6 +1,9 @@
 app.directive('cyclingRace', [function(){
     return {
-        link: function(scope){            
+        link: function(scope){
+            scope.state = new State();
+            scope.State = State;
+            
             /**
              * @type {Route}
              */

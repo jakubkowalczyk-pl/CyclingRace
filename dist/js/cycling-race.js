@@ -139,7 +139,6 @@ var Bike = function(bike){
      */
     this.timer = new Timer();
     
-    this.timer.start();
     setInterval(function(){
         self.distance += self.speed * 1000 / 60 / 60 / 25;
         if(self.distance >= self.route.distance){
@@ -329,6 +328,29 @@ var Route = function(route){
 
 Route.prototype = {
     constructor: Route
+};
+/**
+ * @constructor
+ */
+var State = function(){
+    /**
+     * @param {string} name
+     */
+    this.name = State.MENU;
+};
+
+State.MENU = 'Menu';
+State.RACE = 'Race';
+
+State.prototype = {
+    constructor: State,
+    
+    /**
+     * @param {string} name
+     */
+    set: function(name){
+        this.name = name;
+    }
 };
 /**
  * @constructor
@@ -556,7 +578,10 @@ View.prototype = {
 };
 app.directive('cyclingRace', [function(){
     return {
-        link: function(scope){            
+        link: function(scope){
+            scope.state = new State();
+            scope.State = State;
+            
             /**
              * @type {Route}
              */

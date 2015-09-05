@@ -90,7 +90,6 @@ var Bike = function(bike){
      */
     this.timer = new Timer();
     
-    this.timer.start();
     setInterval(function(){
         self.distance += self.speed * 1000 / 60 / 60 / 25;
         if(self.distance >= self.route.distance){
