@@ -63,6 +63,11 @@ var Bike = function(bike){
      * @type {Biker|null}
      */
     this.biker = null;
+    
+    /**
+     * @type {Date|null}
+     */
+    this.prevCrankMove = null;
 };
 
 Bike.prototype = angular.extend(OnRouteObject.prototype, {
@@ -85,6 +90,7 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
         clearInterval(this.pressingLeftPedal);
         this.pressingLeftPedal = null;
         this.cadence = 0;
+        this.prevCrankMove = null;
     },
 
     pressRightPedal: function(){
@@ -104,6 +110,7 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
         clearInterval(this.pressingRightPedal);
         this.pressingRightPedal = null;
         this.cadence = 0;
+        this.prevCrankMove = null;
     },
 
     rearDerailleurUp: function(){
@@ -119,10 +126,17 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
      */
     rotateCrank: function(pedal){
         if(pedal.position < Pedal.POSITION_DOWN){
-            var move = Math.round((10 + this.speed)/this.rearDerailleur*2);
+            var
+                currentTime = new Date(),
+                interval = this.prevCrankMove ? currentTime - this.prevCrankMove : 0,
+                move = Math.round((25 - 1.3 * this.rearDerailleur) + this.speed);
 
-            this.cadence = Math.min(move / 360 * 60000 / this.pressingInterval, this.biker.maxCadence);
-            this.speed += 0.1 * Math.sqrt(this.rearDerailleur);
+            this.prevCrankMove = currentTime;
+            if(interval){
+                this.cadence = Math.min(move / 360 * 60000 / interval, this.biker.maxCadence);
+                this.speed += 0.1 * Math.sqrt(this.rearDerailleur) * interval / this.pressingInterval;
+                this.distance += this.speed * interval / 3600;
+            }
             this.leftPedal.position += move;
             this.rightPedal.position += move;
             if(pedal.position > Pedal.POSITION_DOWN){

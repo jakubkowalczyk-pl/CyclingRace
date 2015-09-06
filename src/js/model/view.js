@@ -21,9 +21,9 @@ var View = function( bike ){
     this.grass.add( this.road );
 
     this.grass.rotation.x = -Math.PI/2;
-    this.grass.translateY(-10);
 
     this.scene.add( this.sky );
+    this.sky.translateY(.5);
     this.scene.add( this.grass );
     
     this.createBike();
@@ -31,14 +31,18 @@ var View = function( bike ){
     this.camera.position.y = .2;
     this.camera.position.z = 4.99;
     this.camera.rotateX(-Math.PI/6);
-
-    setInterval(function(){
+            
+    function render(){
         var offsetDiff = bike.speed * .001;
-        
+
         self.road.texture.offset.y += offsetDiff;
         self.grass.texture.offset.y += offsetDiff;
-    }, 40);
-    
+        requestAnimationFrame( render );
+        self.renderer.render( self.scene, self.camera );
+    }
+
+    render();
+            
     this.control = new ViewControl({
         view: this
     });
@@ -52,14 +56,14 @@ View.prototype = {
 
     createSky: function(){
         return new THREE.Mesh(
-            new THREE.PlaneGeometry( 20, 20, 32 ),
+            new THREE.PlaneGeometry( 20, 1, 32 ),
             new THREE.MeshBasicMaterial({
                 map: (function(){
                     var texture = THREE.ImageUtils.loadTexture( "./img/sky.jpg" );
 
                     texture.wrapS = THREE.RepeatWrapping; 
                     texture.wrapT = THREE.RepeatWrapping; 
-                    texture.repeat.set( 1, 4.001 );
+                    texture.repeat.set( 1, .2001 );
 
                     return texture;
                 })()
@@ -79,7 +83,7 @@ View.prototype = {
         })();
 
         var grass = new THREE.Mesh(
-            new THREE.PlaneGeometry( 20, 20, 32 ),
+            new THREE.PlaneGeometry( 12, 10, 32 ),
             new THREE.MeshBasicMaterial({
                 map: grassTexture
             })
@@ -102,7 +106,7 @@ View.prototype = {
         })();
 
         var road = new THREE.Mesh(
-            new THREE.PlaneGeometry( .5, 20, 32 ),
+            new THREE.PlaneGeometry( .5, 10, 32 ),
             new THREE.MeshBasicMaterial({
                 map: roadTexture
             })
@@ -126,7 +130,7 @@ View.prototype = {
                 self.road.add( object );
                 object.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
                 object.rotateOnAxis(new THREE.Vector3(0,1,0), Math.PI);
-                object.position.y = 5.03;
+                object.position.y = -4.97;
                 object.position.z = .069;
             }
         );

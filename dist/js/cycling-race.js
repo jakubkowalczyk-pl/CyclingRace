@@ -1,7 +1,7 @@
 /*!
 * CyclingRace v1.0.0
 *
-* Date: 2015-09-05
+* Date: 2015-09-06
 */
 ( function() {
     "use strict";
@@ -43,11 +43,10 @@ var OnRouteObject = function(onRouteObject){
     this.timer = new Timer();
     
     setInterval(function(){
-        self.distance += self.speed * 1000 / 60 / 60 / 25;
         if(self.distance >= self.route.distance){
-            self.timer.stop();
+            //self.timer.stop();
         }
-    }, 40);
+    }, 1000);
 };
 
 OnRouteObject.prototype = {
@@ -161,6 +160,11 @@ var Bike = function(bike){
      * @type {Biker|null}
      */
     this.biker = null;
+    
+    /**
+     * @type {Date|null}
+     */
+    this.prevCrankMove = null;
 };
 
 Bike.prototype = angular.extend(OnRouteObject.prototype, {
@@ -183,6 +187,7 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
         clearInterval(this.pressingLeftPedal);
         this.pressingLeftPedal = null;
         this.cadence = 0;
+        this.prevCrankMove = null;
     },
 
     pressRightPedal: function(){
@@ -202,6 +207,7 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
         clearInterval(this.pressingRightPedal);
         this.pressingRightPedal = null;
         this.cadence = 0;
+        this.prevCrankMove = null;
     },
 
     rearDerailleurUp: function(){
@@ -217,10 +223,17 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
      */
     rotateCrank: function(pedal){
         if(pedal.position < Pedal.POSITION_DOWN){
-            var move = Math.round((10 + this.speed)/this.rearDerailleur*2);
+            var
+                currentTime = new Date(),
+                interval = this.prevCrankMove ? currentTime - this.prevCrankMove : 0,
+                move = Math.round((25 - 1.3 * this.rearDerailleur) + this.speed);
 
-            this.cadence = Math.min(move / 360 * 60000 / this.pressingInterval, this.biker.maxCadence);
-            this.speed += 0.1 * Math.sqrt(this.rearDerailleur);
+            this.prevCrankMove = currentTime;
+            if(interval){
+                this.cadence = Math.min(move / 360 * 60000 / interval, this.biker.maxCadence);
+                this.speed += 0.1 * Math.sqrt(this.rearDerailleur) * interval / this.pressingInterval;
+                this.distance += this.speed * interval / 3600;
+            }
             this.leftPedal.position += move;
             this.rightPedal.position += move;
             if(pedal.position > Pedal.POSITION_DOWN){
@@ -457,9 +470,10 @@ var View = function( bike ){
     this.grass.add( this.road );
 
     this.grass.rotation.x = -Math.PI/2;
-    this.grass.translateY(-10);
+    this.grass.translateY(-0);
 
     this.scene.add( this.sky );
+    this.sky.translateY(.5);
     this.scene.add( this.grass );
     
     this.createBike();
@@ -467,14 +481,18 @@ var View = function( bike ){
     this.camera.position.y = .2;
     this.camera.position.z = 4.99;
     this.camera.rotateX(-Math.PI/6);
-
-    setInterval(function(){
+            
+    function render(){
         var offsetDiff = bike.speed * .001;
-        
+
         self.road.texture.offset.y += offsetDiff;
         self.grass.texture.offset.y += offsetDiff;
-    }, 40);
-    
+        requestAnimationFrame( render );
+        self.renderer.render( self.scene, self.camera );
+    }
+
+    render();
+            
     this.control = new ViewControl({
         view: this
     });
@@ -488,14 +506,14 @@ View.prototype = {
 
     createSky: function(){
         return new THREE.Mesh(
-            new THREE.PlaneGeometry( 20, 20, 32 ),
+            new THREE.PlaneGeometry( 20, 1, 32 ),
             new THREE.MeshBasicMaterial({
                 map: (function(){
                     var texture = THREE.ImageUtils.loadTexture( "./img/sky.jpg" );
 
                     texture.wrapS = THREE.RepeatWrapping; 
                     texture.wrapT = THREE.RepeatWrapping; 
-                    texture.repeat.set( 1, 4.001 );
+                    texture.repeat.set( 1, .2001 );
 
                     return texture;
                 })()
@@ -515,7 +533,7 @@ View.prototype = {
         })();
 
         var grass = new THREE.Mesh(
-            new THREE.PlaneGeometry( 20, 20, 32 ),
+            new THREE.PlaneGeometry( 12, 10, 32 ),
             new THREE.MeshBasicMaterial({
                 map: grassTexture
             })
@@ -538,7 +556,7 @@ View.prototype = {
         })();
 
         var road = new THREE.Mesh(
-            new THREE.PlaneGeometry( .5, 20, 32 ),
+            new THREE.PlaneGeometry( .5, 10, 32 ),
             new THREE.MeshBasicMaterial({
                 map: roadTexture
             })
@@ -562,7 +580,7 @@ View.prototype = {
                 self.road.add( object );
                 object.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
                 object.rotateOnAxis(new THREE.Vector3(0,1,0), Math.PI);
-                object.position.y = 5.03;
+                object.position.y = -4.97;
                 object.position.z = .069;
             }
         );
@@ -621,13 +639,6 @@ app.directive('cyclingRace', [function(){
             });
             
             var view = new View( scope.bikers[0].bike );
-    
-            function render(){
-                requestAnimationFrame( render );
-                view.renderer.render( view.scene, view.camera );
-            }
-
-            render();
             
             /**
              * @type {Timer}
@@ -636,7 +647,7 @@ app.directive('cyclingRace', [function(){
             
             setInterval(function(){
                 scope.$digest();
-            }, 40);
+            }, 100);
         }
     };
 }]);

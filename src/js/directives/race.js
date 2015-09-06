@@ -31,13 +31,6 @@ app.directive('cyclingRace', [function(){
             });
             
             var view = new View( scope.bikers[0].bike );
-    
-            function render(){
-                requestAnimationFrame( render );
-                view.renderer.render( view.scene, view.camera );
-            }
-
-            render();
             
             /**
              * @type {Timer}
@@ -46,7 +39,7 @@ app.directive('cyclingRace', [function(){
             
             setInterval(function(){
                 scope.$digest();
-            }, 40);
+            }, 100);
         }
     };
 }]);

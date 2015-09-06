@@ -34,11 +34,10 @@ var OnRouteObject = function(onRouteObject){
     this.timer = new Timer();
     
     setInterval(function(){
-        self.distance += self.speed * 1000 / 60 / 60 / 25;
         if(self.distance >= self.route.distance){
             self.timer.stop();
         }
-    }, 40);
+    }, 1000);
 };
 
 OnRouteObject.prototype = {
