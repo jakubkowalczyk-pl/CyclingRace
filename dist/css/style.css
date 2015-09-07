@@ -1,15 +1,20 @@
+html {
+    background: #000;
+}
+
 body {
-    margin: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
 }
 
 canvas {
-    width: 100%;
-    height: 100%;
+    margin: 0 auto;
     display: block;
 }
 
 .overlay {
-    background: rgba(0,0,0,.7);
+    background: rgba(0,0,0,.85);
     top: 0;
     left: 0;
     right: 0;
@@ -36,6 +41,7 @@ button:hover {
 .menu {
     width: 320px;
     margin: 60px auto;
+    color: #fff;
 }
 .menu button {
     width: 100%;
@@ -46,4 +52,13 @@ button:hover {
     top: 0;
     left: 0;
     position: absolute;
+}
+.tip {
+    font-size: 1.7em;
+    color: #fff;
+    text-align: center;
+    top: 30vh;
+    left: 0;
+    right: 0;
+    position: absolute; 
 }

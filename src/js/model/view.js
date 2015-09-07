@@ -3,17 +3,20 @@
  * @param {Bike} bike
  */
 var View = function( bike ){
-    var self = this;
+    var
+        self = this,
+        width = Math.min( window.innerWidth, 1200 ),
+        height = Math.min( window.innerHeight, 600 );
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    this.camera = new THREE.PerspectiveCamera( 75, width / height, 0.1, 1000 );
     this.renderer = new THREE.WebGLRenderer();    
     this.loader = new THREE.JSONLoader();
     this.sky = this.createSky();
     this.grass = this.createGrass();
     this.road = this.createRoad();
 
-    this.renderer.setSize( window.innerWidth, window.innerHeight );
+    this.renderer.setSize( width, height );
     this.body.appendChild( this.renderer.domElement );
 
     this.road.translateZ(0.000001);

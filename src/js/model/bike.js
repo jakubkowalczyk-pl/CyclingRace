@@ -23,7 +23,7 @@ var Bike = function(bike){
      * Current gear in rear derailleur
      * @type {number}
      */
-    this.rearDerailleur = 1;
+    this.rearDerailleur = 4;
 
     /**
      * @type {Pedal}

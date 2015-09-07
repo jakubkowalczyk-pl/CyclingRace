@@ -4,11 +4,13 @@ app.directive('cyclingRace', [function(){
             scope.state = new State();
             scope.State = State;
             
+            scope.Pedal = Pedal;
+            
             /**
              * @type {Route}
              */
             scope.route = new Route({
-                distance: 100
+                distance: 50
             });
             
             /**

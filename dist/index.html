@@ -9,7 +9,13 @@
 <body cycling-race>
     <div ng-if="state.name == State.MENU" class="overlay">
         <div class="menu">
-            <button ng-click="state.set(State.RACE); bikers[0].bike.timer.start();">New Race</button>            
+            <button ng-click="state.set(State.RACE); bikers[0].bike.timer.start();">Start</button>
+            <br><br>
+            <strong>Controls:</strong><br>
+            Left pedal: left arrow<br>
+            Right pedal: right arrow<br>
+            Derailleur up: up arrow<br>
+            Derailleur down: down arrow
         </div>
     </div>
     
@@ -35,6 +41,24 @@
         <td>{{biker.bike.rightPedal.position}}</td>
     </tr>
     </table>
+    
+    <div class="tip">
+        <div ng-if="route.distance - bikers[0].bike.distance > 0">
+            <div ng-if="bikers[0].bike.leftPedal.position >= Pedal.POSITION_DOWN">
+                Press and hold <strong>right</strong> arrow
+            </div>
+            <div ng-if="bikers[0].bike.leftPedal.position < Pedal.POSITION_DOWN">
+                Press and hold <strong>left</strong> arrow
+            </div>
+            <small>
+                Left: {{(route.distance - bikers[0].bike.distance) | number:0}}m
+            </small>
+        </div>
+        <div ng-if="route.distance - bikers[0].bike.distance <= 0">
+            Your result: {{timer.value | date: 'mm:ss'}}
+        </div>
+    </div>
+    
     <script src="js/angular.js"></script>
     <script src="js/three.js"></script>
     <script src="js/cycling-race.js"></script>

@@ -44,7 +44,7 @@ var OnRouteObject = function(onRouteObject){
     
     setInterval(function(){
         if(self.distance >= self.route.distance){
-            //self.timer.stop();
+            self.timer.stop();
         }
     }, 1000);
 };
@@ -120,7 +120,7 @@ var Bike = function(bike){
      * Current gear in rear derailleur
      * @type {number}
      */
-    this.rearDerailleur = 1;
+    this.rearDerailleur = 4;
 
     /**
      * @type {Pedal}
@@ -452,17 +452,20 @@ ViewControl.prototype = {
  * @param {Bike} bike
  */
 var View = function( bike ){
-    var self = this;
+    var
+        self = this,
+        width = Math.min( window.innerWidth, 1200 ),
+        height = Math.min( window.innerHeight, 600 );
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    this.camera = new THREE.PerspectiveCamera( 75, width / height, 0.1, 1000 );
     this.renderer = new THREE.WebGLRenderer();    
     this.loader = new THREE.JSONLoader();
     this.sky = this.createSky();
     this.grass = this.createGrass();
     this.road = this.createRoad();
 
-    this.renderer.setSize( window.innerWidth, window.innerHeight );
+    this.renderer.setSize( width, height );
     this.body.appendChild( this.renderer.domElement );
 
     this.road.translateZ(0.000001);
@@ -470,7 +473,6 @@ var View = function( bike ){
     this.grass.add( this.road );
 
     this.grass.rotation.x = -Math.PI/2;
-    this.grass.translateY(-0);
 
     this.scene.add( this.sky );
     this.sky.translateY(.5);
@@ -612,11 +614,13 @@ app.directive('cyclingRace', [function(){
             scope.state = new State();
             scope.State = State;
             
+            scope.Pedal = Pedal;
+            
             /**
              * @type {Route}
              */
             scope.route = new Route({
-                distance: 100
+                distance: 50
             });
             
             /**
