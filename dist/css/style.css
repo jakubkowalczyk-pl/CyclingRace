@@ -5,6 +5,7 @@ html {
 body {
     margin: 0 auto;
     position: relative;
+    font-family: sans-serif;
 }
 
 canvas {
@@ -48,10 +49,17 @@ button:hover {
 .board {
     text-align: center;
     color: #fff;
+    border-collapse: collapse;
     top: 0;
     left: 0;
     position: absolute;
 }
+
+.board td {
+    padding: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, .3);
+}
+
 .tip {
     font-size: 1.7em;
     color: #fff;
