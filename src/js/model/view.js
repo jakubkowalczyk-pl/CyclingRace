@@ -5,8 +5,8 @@
 var View = function( bike ){
     var
         self = this,
-        width = Math.min( window.innerWidth, 1200 ),
-        height = Math.min( window.innerHeight, 600 );
+        width = window.innerWidth,
+        height = window.innerHeight;
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera( 75, width / height, 0.1, 1000 );
@@ -19,7 +19,7 @@ var View = function( bike ){
     this.renderer.setSize( width, height );
     this.body.appendChild( this.renderer.domElement );
 
-    this.road.translateZ(0.000001);
+    this.road.translateZ(0.000002);
 
     this.grass.add( this.road );
 
@@ -86,7 +86,7 @@ View.prototype = {
         })();
 
         var grass = new THREE.Mesh(
-            new THREE.PlaneGeometry( 12, 10, 32 ),
+            new THREE.PlaneGeometry( 13, 10, 32 ),
             new THREE.MeshBasicMaterial({
                 map: grassTexture
             })
