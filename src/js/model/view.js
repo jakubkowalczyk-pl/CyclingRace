@@ -1,12 +1,17 @@
 /**
  * @construcotr
- * @param {Bike} bike
+ * @param {Object} view
+ * @param {Bike} view.bike
+ * @param {Loading} view.loading
  */
-var View = function( bike ){
+var View = function( view ){
     var
         self = this,
         width = window.innerWidth,
         height = window.innerHeight;
+
+    this.bike = view.bike;
+    this.loading = view.loading;
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera( 75, width / height, 0.1, 1000 );
@@ -29,14 +34,16 @@ var View = function( bike ){
     this.sky.translateY(.5);
     this.scene.add( this.grass );
     
-    this.createBike();
+    this.createBike().then(function(){
+        self.loading.markAsCompleted();
+    });
 
     this.camera.position.y = .2;
     this.camera.position.z = 4.99;
     this.camera.rotateX(-Math.PI/6);
             
     function render(){
-        var offsetDiff = bike.speed * .001;
+        var offsetDiff = self.bike.speed * .001;
 
         self.road.texture.offset.y += offsetDiff;
         self.grass.texture.offset.y += offsetDiff;
@@ -59,18 +66,18 @@ View.prototype = {
 
     createSky: function(){
         return new THREE.Mesh(
-            new THREE.PlaneGeometry( 20, 1, 32 ),
-            new THREE.MeshBasicMaterial({
-                map: (function(){
-                    var texture = THREE.ImageUtils.loadTexture( "./img/sky.jpg" );
+                new THREE.PlaneGeometry( 20, 1, 32 ),
+                new THREE.MeshBasicMaterial({
+                    map: (function(){
+                        var texture = THREE.ImageUtils.loadTexture( "./img/sky.jpg" );
 
-                    texture.wrapS = THREE.RepeatWrapping; 
-                    texture.wrapT = THREE.RepeatWrapping; 
-                    texture.repeat.set( 1, .2001 );
+                        texture.wrapS = THREE.RepeatWrapping; 
+                        texture.wrapT = THREE.RepeatWrapping; 
+                        texture.repeat.set( 1, .2001 );
 
-                    return texture;
-                })()
-            })
+                        return texture;
+                    })()
+                })
         );
     },
 
@@ -120,8 +127,13 @@ View.prototype = {
         return road;
     },
     
+    /**
+     * @returns {Promise}
+     */
     createBike: function(){
-        var self = this;
+        var
+            self = this,
+            deferred = Q.defer();
         
         this.loader.load(
             './models/bike.json',
@@ -135,8 +147,11 @@ View.prototype = {
                 object.rotateOnAxis(new THREE.Vector3(0,1,0), Math.PI);
                 object.position.y = -4.97;
                 object.position.z = .069;
+                deferred.resolve();
             }
         );
+
+        return deferred.promise;
     },
     
     createTree: function(){

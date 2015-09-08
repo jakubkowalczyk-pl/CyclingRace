@@ -7,16 +7,22 @@
     <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
 <body cycling-race>
-    <div ng-if="state.name == State.MENU" class="overlay">
-        <div class="menu">
-            <button ng-click="state.set(State.RACE); bikers[0].bike.timer.start();">Start</button>
-            <br><br>
-            <strong>Controls:</strong><br>
-            Left pedal: left arrow<br>
-            Right pedal: right arrow<br>
-            Derailleur up: up arrow<br>
-            Derailleur down: down arrow
+    <div ng-switch="state.name">
+        <div ng-switch-when="Menu" class="overlay">
+            <div class="menu">
+                <button ng-click="state.set(State.RACE); bikers[0].bike.timer.start();">Start</button>
+                <br><br>
+                <strong>Controls:</strong><br>
+                Left pedal: left arrow<br>
+                Right pedal: right arrow<br>
+                Derailleur up: up arrow<br>
+                Derailleur down: down arrow
+            </div>
         </div>
+        
+        <div ng-switch-when="Loading" class="loading-screen">
+            Loading...
+        </div>        
     </div>
     
     <table class="board">
@@ -59,6 +65,7 @@
         </div>
     </div>
     
+    <script src="js/q.js"></script>
     <script src="js/angular.js"></script>
     <script src="js/three.js"></script>
     <script src="js/cycling-race.js"></script>

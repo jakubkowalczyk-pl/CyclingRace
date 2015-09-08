@@ -70,7 +70,7 @@ var Bike = function(bike){
     this.prevCrankMove = null;
 };
 
-Bike.prototype = angular.extend(OnRouteObject.prototype, {
+Bike.prototype = Object.create(OnRouteObject.prototype, {
     constructor: Bike,
 
     pressLeftPedal: function(){

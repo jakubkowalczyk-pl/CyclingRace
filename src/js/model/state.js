@@ -5,11 +5,12 @@ var State = function(){
     /**
      * @param {string} name
      */
-    this.name = State.MENU;
+    this.name = State.LOADING;
 };
 
 State.MENU = 'Menu';
 State.RACE = 'Race';
+State.LOADING = 'Loading';
 
 State.prototype = {
     constructor: State,

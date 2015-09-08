@@ -1,7 +1,7 @@
 /*!
 * CyclingRace v1.0.0
 *
-* Date: 2015-09-07
+* Date: 2015-09-08
 */
 ( function() {
     "use strict";
@@ -167,7 +167,7 @@ var Bike = function(bike){
     this.prevCrankMove = null;
 };
 
-Bike.prototype = angular.extend(OnRouteObject.prototype, {
+Bike.prototype = Object.create(OnRouteObject.prototype, {
     constructor: Bike,
 
     pressLeftPedal: function(){
@@ -293,6 +293,40 @@ Gravity.prototype = {
 };
 /**
  * @constructor
+ */
+var Loading = function(){
+    /**
+     * @type {Boolean}
+     */
+    this.complete = false;
+    
+    this.deferred = Q.defer();
+};
+
+Loading.prototype = {
+    constructor: Loading,
+    
+    markAsCompleted: function(){
+        this.complete = true;
+        this.deferred.resolve();
+    },
+    
+    /**
+     * @returns {Boolean}
+     */
+    isCompleted: function(){
+        return this.complete;
+    },
+    
+    /**
+     * @returns {Promise}
+     */
+    whenCompleted: function(){
+        return this.deferred.promise;
+    }
+};
+/**
+ * @constructor
  * @param {object} [pedal={}]
  * @param {number} [pedal.position=0] min 0, max 360 degrees
  */
@@ -361,11 +395,12 @@ var State = function(){
     /**
      * @param {string} name
      */
-    this.name = State.MENU;
+    this.name = State.LOADING;
 };
 
 State.MENU = 'Menu';
 State.RACE = 'Race';
+State.LOADING = 'Loading';
 
 State.prototype = {
     constructor: State,
@@ -449,13 +484,18 @@ ViewControl.prototype = {
 };
 /**
  * @construcotr
- * @param {Bike} bike
+ * @param {Object} view
+ * @param {Bike} view.bike
+ * @param {Loading} view.loading
  */
-var View = function( bike ){
+var View = function( view ){
     var
         self = this,
         width = window.innerWidth,
         height = window.innerHeight;
+
+    this.bike = view.bike;
+    this.loading = view.loading;
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera( 75, width / height, 0.1, 1000 );
@@ -478,14 +518,16 @@ var View = function( bike ){
     this.sky.translateY(.5);
     this.scene.add( this.grass );
     
-    this.createBike();
+    this.createBike().then(function(){
+        self.loading.markAsCompleted();
+    });
 
     this.camera.position.y = .2;
     this.camera.position.z = 4.99;
     this.camera.rotateX(-Math.PI/6);
             
     function render(){
-        var offsetDiff = bike.speed * .001;
+        var offsetDiff = self.bike.speed * .001;
 
         self.road.texture.offset.y += offsetDiff;
         self.grass.texture.offset.y += offsetDiff;
@@ -508,18 +550,18 @@ View.prototype = {
 
     createSky: function(){
         return new THREE.Mesh(
-            new THREE.PlaneGeometry( 20, 1, 32 ),
-            new THREE.MeshBasicMaterial({
-                map: (function(){
-                    var texture = THREE.ImageUtils.loadTexture( "./img/sky.jpg" );
+                new THREE.PlaneGeometry( 20, 1, 32 ),
+                new THREE.MeshBasicMaterial({
+                    map: (function(){
+                        var texture = THREE.ImageUtils.loadTexture( "./img/sky.jpg" );
 
-                    texture.wrapS = THREE.RepeatWrapping; 
-                    texture.wrapT = THREE.RepeatWrapping; 
-                    texture.repeat.set( 1, .2001 );
+                        texture.wrapS = THREE.RepeatWrapping; 
+                        texture.wrapT = THREE.RepeatWrapping; 
+                        texture.repeat.set( 1, .2001 );
 
-                    return texture;
-                })()
-            })
+                        return texture;
+                    })()
+                })
         );
     },
 
@@ -569,8 +611,13 @@ View.prototype = {
         return road;
     },
     
+    /**
+     * @returns {Promise}
+     */
     createBike: function(){
-        var self = this;
+        var
+            self = this,
+            deferred = Q.defer();
         
         this.loader.load(
             './models/bike.json',
@@ -584,8 +631,11 @@ View.prototype = {
                 object.rotateOnAxis(new THREE.Vector3(0,1,0), Math.PI);
                 object.position.y = -4.97;
                 object.position.z = .069;
+                deferred.resolve();
             }
         );
+
+        return deferred.promise;
     },
     
     createTree: function(){
@@ -642,7 +692,17 @@ app.directive('cyclingRace', [function(){
                 route: scope.route
             });
             
-            var view = new View( scope.bikers[0].bike );
+            var viewLoading = new Loading();
+            
+            var view = new View({
+                bike: scope.bikers[0].bike,
+                loading: viewLoading
+            });
+            
+            viewLoading.whenCompleted().then(function(){
+                scope.state.set(State.MENU);
+                scope.$digest();
+            });
             
             /**
              * @type {Timer}

@@ -32,7 +32,17 @@ app.directive('cyclingRace', [function(){
                 route: scope.route
             });
             
-            var view = new View( scope.bikers[0].bike );
+            var viewLoading = new Loading();
+            
+            var view = new View({
+                bike: scope.bikers[0].bike,
+                loading: viewLoading
+            });
+            
+            viewLoading.whenCompleted().then(function(){
+                scope.state.set(State.MENU);
+                scope.$digest();
+            });
             
             /**
              * @type {Timer}
