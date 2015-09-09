@@ -1,7 +1,7 @@
 /*!
 * CyclingRace v1.0.0
 *
-* Date: 2015-09-08
+* Date: 2015-09-09
 */
 ( function() {
     "use strict";
@@ -167,9 +167,9 @@ var Bike = function(bike){
     this.prevCrankMove = null;
 };
 
-Bike.prototype = Object.create(OnRouteObject.prototype, {
+Bike.prototype = angular.extend(OnRouteObject.prototype, {
     constructor: Bike,
-
+    
     pressLeftPedal: function(){
         var bike = this;
 
@@ -256,6 +256,7 @@ Bike.prototype = Object.create(OnRouteObject.prototype, {
         this.stopPressRightPedal();
     }
 });
+
 /**
  * @constructor
  * @param {object} biker
