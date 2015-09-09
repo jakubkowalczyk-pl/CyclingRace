@@ -41,6 +41,39 @@ canvas {
     position: fixed;
     z-index: 1;
 }
+
+.loading-icon {
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
+    display: inline-block;
+    position: relative;
+}
+
+.loading-icon:before {
+    width: 50%;
+    height: .05em;
+    background: #fff;
+    left: 0;
+    top: 0;
+    animation: .9s loadingIcon infinite linear;
+    position: absolute;
+    content: "";
+}
+
+.loading-icon:after {
+    width: 50%;
+    height: .05em;
+    background: #fff;
+    right: 0;
+    top: 100%;
+    animation: .9s loadingIcon infinite linear;
+    animation-delay: .45s;
+    animation-direction: reverse;
+    position: absolute;
+    content: "";
+}
+
 button {
     padding: .7em;
     border: 0;
@@ -87,4 +120,18 @@ button:hover {
     left: 0;
     right: 0;
     position: absolute; 
+}
+
+@keyframes loadingIcon {
+    0% {
+        top: 0;
+    }
+    
+    50% {
+        top: 100%;
+    }
+    
+    100% {
+        top: 0;
+    }
 }
