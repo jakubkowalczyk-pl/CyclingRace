@@ -38,15 +38,25 @@ var View = function( view ){
         self.loading.markAsCompleted();
     });
 
-    this.camera.position.y = .2;
+    this.camera.position.y = View.CAMERA_POSITION_Y_DEFAULT;
     this.camera.position.z = 4.99;
     this.camera.rotateX(-Math.PI/6);
             
     function render(){
-        var offsetDiff = self.bike.speed * .001;
-
+        var
+            bike = self.bike,
+            offsetDiff = bike.speed * .001,
+            cameraPosition = self.camera.position;
+    
         self.road.texture.offset.y += offsetDiff;
         self.grass.texture.offset.y += offsetDiff;
+        cameraPosition.y = View.CAMERA_POSITION_Y_DEFAULT + .00002 * Math.abs(Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
+        if(bike.pressingLeftPedal){
+            cameraPosition.x = -.000005 * bike.leftPedal.position;
+        }
+        if(bike.pressingRightPedal){
+            cameraPosition.x = .000005 * bike.rightPedal.position;
+        }
         requestAnimationFrame( render );
         self.renderer.render( self.scene, self.camera );
     }
@@ -60,6 +70,8 @@ var View = function( view ){
     var light = new THREE.AmbientLight( 0xcfcfcf );
     this.scene.add( light );
 };
+
+View.CAMERA_POSITION_Y_DEFAULT = .2;
 
 View.prototype = {
     body: document.querySelectorAll('body')[0],
