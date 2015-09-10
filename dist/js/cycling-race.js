@@ -1,7 +1,7 @@
 /*!
 * CyclingRace v1.0.0
 *
-* Date: 2015-09-09
+* Date: 2015-09-10
 */
 ( function() {
     "use strict";
@@ -31,9 +31,9 @@ var OnRouteObject = function(onRouteObject){
     this.distance = 0;
 
     /**
-     * @type {Gravity}
+     * @type {ResistanceForces}
      */
-    this.gravity = new Gravity({
+    this.gravity = new ResistanceForces({
         object: this
     });
     
@@ -226,12 +226,12 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
             var
                 currentTime = new Date(),
                 interval = this.prevCrankMove ? currentTime - this.prevCrankMove : 0,
-                move = Math.round((25 - 1.3 * this.rearDerailleur) + this.speed);
+                move = 1.5 * Math.round(.75 * (14 - 1.3 * this.rearDerailleur) + .15 * this.speed);
 
             this.prevCrankMove = currentTime;
             if(interval){
                 this.cadence = Math.min(move / 360 * 60000 / interval, this.biker.maxCadence);
-                this.speed += 0.1 * Math.sqrt(this.rearDerailleur) * interval / this.pressingInterval;
+                this.speed += .01 * Math.sqrt(this.rearDerailleur) * this.cadence / 4 * interval / this.pressingInterval;
                 this.distance += this.speed * interval / 3600;
             }
             this.leftPedal.position += move;
@@ -271,26 +271,6 @@ var Biker = function(biker){
 
 Biker.prototype = {
     constructor: Biker
-};
-/**
- * @constructor
- * @param {object} gravity
- * @param {object} gravity.object
- * @param {number} gravity.object.speed
- */
-var Gravity = function(gravity){
-    /**
-     * @type {number}
-     */
-    this.object = gravity.object;
-
-    setInterval(function(){
-        gravity.object.speed = Math.max(0, gravity.object.speed-1);
-    }, 800);
-};
-
-Gravity.prototype = {
-    constructor: Gravity
 };
 /**
  * @constructor
@@ -373,6 +353,26 @@ var Race = function(race){
 
 Race.prototype = {
     constructor: Race
+};
+/**
+ * @constructor
+ * @param {object} resistanceForces
+ * @param {object} resistanceForces.object
+ * @param {number} resistanceForces.object.speed
+ */
+var ResistanceForces = function(resistanceForces){
+    /**
+     * @type {number}
+     */
+    this.object = resistanceForces.object;
+
+    setInterval(function(){
+        resistanceForces.object.speed *= .92;
+    }, 800);
+};
+
+ResistanceForces.prototype = {
+    constructor: ResistanceForces
 };
 /**
  * @constructor

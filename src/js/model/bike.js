@@ -129,12 +129,12 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
             var
                 currentTime = new Date(),
                 interval = this.prevCrankMove ? currentTime - this.prevCrankMove : 0,
-                move = Math.round((25 - 1.3 * this.rearDerailleur) + this.speed);
+                move = 1.5 * Math.round(.75 * (14 - 1.3 * this.rearDerailleur) + .15 * this.speed);
 
             this.prevCrankMove = currentTime;
             if(interval){
                 this.cadence = Math.min(move / 360 * 60000 / interval, this.biker.maxCadence);
-                this.speed += 0.1 * Math.sqrt(this.rearDerailleur) * interval / this.pressingInterval;
+                this.speed += .01 * Math.sqrt(this.rearDerailleur) * this.cadence / 4 * interval / this.pressingInterval;
                 this.distance += this.speed * interval / 3600;
             }
             this.leftPedal.position += move;

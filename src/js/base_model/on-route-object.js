@@ -22,9 +22,9 @@ var OnRouteObject = function(onRouteObject){
     this.distance = 0;
 
     /**
-     * @type {Gravity}
+     * @type {ResistanceForces}
      */
-    this.gravity = new Gravity({
+    this.gravity = new ResistanceForces({
         object: this
     });
     
