@@ -46,16 +46,17 @@ var View = function( view ){
         var
             bike = self.bike,
             offsetDiff = bike.speed * .001,
-            cameraPosition = self.camera.position;
+            cameraPosition = self.camera.position,
+            cameraDiffDistance = .00008 * Math.abs(Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
     
         self.road.texture.offset.y += offsetDiff;
         self.grass.texture.offset.y += offsetDiff;
-        cameraPosition.y = View.CAMERA_POSITION_Y_DEFAULT + .00002 * Math.abs(Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
-        if(bike.pressingLeftPedal){
-            cameraPosition.x = -.000005 * bike.leftPedal.position;
+        cameraPosition.y = View.CAMERA_POSITION_Y_DEFAULT + cameraDiffDistance;
+        if(bike.leftPedal.position < bike.rightPedal.position){
+            cameraPosition.x = .00008 * (Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
         }
-        if(bike.pressingRightPedal){
-            cameraPosition.x = .000005 * bike.rightPedal.position;
+        else{
+            cameraPosition.x = .00008 * (Pedal.POSITION_DOWN/2 - Math.min(bike.leftPedal.position, bike.rightPedal.position));            
         }
         requestAnimationFrame( render );
         self.renderer.render( self.scene, self.camera );
