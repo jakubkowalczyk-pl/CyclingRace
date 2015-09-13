@@ -1,7 +1,7 @@
 /*!
 * CyclingRace v1.0.0
 *
-* Date: 2015-09-10
+* Date: 2015-09-13
 */
 ( function() {
     "use strict";
@@ -57,6 +57,54 @@ OnRouteObject.prototype = {
     }
 };
 /**
+ * @type {PeriodicUpdater}
+ */
+var PeriodicUpdater = (function(){
+    /**
+     * @constructor
+     */
+    var PeriodicUpdater = function(){
+        var self = this;
+        
+        this.update = function(){};
+        setInterval(function(){
+            self.update();
+        }, 40);
+    };
+
+    PeriodicUpdater.prototype = {
+        constructor: PeriodicUpdater,
+
+        /**
+         * @param {Function} fn
+         */
+        add: function(fn){
+            var update = angular.copy(this.update);
+
+            this.update = function(){
+                update();
+                fn();
+            };
+        }
+    };
+
+    return new PeriodicUpdater();
+})();
+/**
+ * @constructor
+ */
+var PeriodicallyUpdatableObject = function(){
+    var self = this;
+    
+    PeriodicUpdater.add(function(){
+        self.periodicallyUpdate();
+    });
+};
+
+PeriodicallyUpdatableObject.prototype = {
+    constructor: PeriodicallyUpdatableObject
+};
+/**
  * @constructor
  * @param {object} control
  * @param {Bike} control.bike
@@ -98,11 +146,13 @@ BikeControl.prototype = {
 /**
  * @constructor
  * @extends OnRouteObject
+ * @extends PeriodicallyUpdatableObject
  * @param {object} bike
  * @param {Route} bike.route
  */
 var Bike = function(bike){    
     OnRouteObject.call(this, bike);
+    PeriodicallyUpdatableObject.call(this);
 
     /**
      * Number of rotates per second
@@ -142,14 +192,14 @@ var Bike = function(bike){
     });
 
     /**
-     * @type {number|null}
+     * @type {boolean}
      */
-    this.pressingLeftPedal = null;
+    this.pressingLeftPedal = false;
 
     /**
-     * @type {number|null}
+     * @type {boolean}
      */
-    this.pressingRightPedal = null;
+    this.pressingRightPedal = false;
 
     /**
      * @type {number}
@@ -171,41 +221,31 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
     constructor: Bike,
     
     pressLeftPedal: function(){
-        var bike = this;
-
         if(this.pressingRightPedal){
             this.stopPressPedals();
         }
         else if(!this.pressingLeftPedal){
-            this.pressingLeftPedal = setInterval(function(){
-                bike.rotateCrank(bike.leftPedal);
-            }, this.pressingInterval);
+            this.pressingLeftPedal = true;
         }
     },
 
     stopPressLeftPedal: function(){
-        clearInterval(this.pressingLeftPedal);
-        this.pressingLeftPedal = null;
+        this.pressingLeftPedal = false;
         this.cadence = 0;
         this.prevCrankMove = null;
     },
 
     pressRightPedal: function(){
-        var bike = this;
-
         if(this.pressingLeftPedal){
             this.stopPressPedals();
         }
         else if(!this.pressingRightPedal){
-            this.pressingRightPedal = setInterval(function(){
-                bike.rotateCrank(bike.rightPedal);
-            }, this.pressingInterval);
+            this.pressingRightPedal = true;
         }
     },
 
     stopPressRightPedal: function(){
-        clearInterval(this.pressingRightPedal);
-        this.pressingRightPedal = null;
+        this.pressingRightPedal = false;
         this.cadence = 0;
         this.prevCrankMove = null;
     },
@@ -254,6 +294,26 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
     stopPressPedals: function(){
         this.stopPressLeftPedal();
         this.stopPressRightPedal();
+    },
+    
+    periodicallyUpdate: function(){
+        var pedal = this.getWorkingPedal();
+        
+        if(pedal){
+            this.rotateCrank(pedal);
+        }
+    },
+    
+    /**
+     * @returns {Pedal}
+     */
+    getWorkingPedal: function(){
+        if(this.pressingLeftPedal){
+            return this.leftPedal;
+        }
+        else if(this.pressingRightPedal){
+            return this.rightPedal;
+        }
     }
 });
 
