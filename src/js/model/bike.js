@@ -28,6 +28,16 @@ var Bike = function(bike){
     this.rearDerailleur = 4;
 
     /**
+     * @type {Translate}
+     */
+    this.translate = new Translate();
+
+    /**
+     * @type {Rotate}
+     */
+    this.rotate = new Rotate();
+
+    /**
      * @type {Pedal}
      */
     this.leftPedal = new Pedal();
@@ -57,6 +67,20 @@ var Bike = function(bike){
     this.pressingRightPedal = false;
 
     /**
+     * Interval
+     * 
+     * @type {number|null}
+     */
+    this.turningLeft = null;
+
+    /**
+     * Interval
+     * 
+     * @type {number|null}
+     */
+    this.turningRight = null;
+
+    /**
      * @type {number}
      */
     this.pressingInterval = 40;
@@ -83,13 +107,13 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
             this.pressingLeftPedal = true;
         }
     },
-
+    
     stopPressLeftPedal: function(){
         this.pressingLeftPedal = false;
         this.cadence = 0;
         this.prevCrankMove = null;
     },
-
+    
     pressRightPedal: function(){
         if(this.pressingLeftPedal){
             this.stopPressPedals();
@@ -104,7 +128,7 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
         this.cadence = 0;
         this.prevCrankMove = null;
     },
-
+    
     rearDerailleurUp: function(){
         this.rearDerailleur = Math.min(this.rearDerailleur+1, this.maxRearDerailleur);
     },
@@ -152,11 +176,16 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
     },
     
     periodicallyUpdate: function(){
-        var pedal = this.getWorkingPedal();
-        
+        var
+            offsetDiffX = this.speed * .001 * Math.sin(this.rotate.y),
+            offsetDiffY = this.speed * .001 * Math.cos(this.rotate.y),
+            pedal = this.getWorkingPedal();
+    
         if(pedal){
             this.rotateCrank(pedal);
         }
+        this.translate.x += offsetDiffX;
+        this.translate.y += offsetDiffY;
     },
     
     /**
@@ -169,5 +198,46 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
         else if(this.pressingRightPedal){
             return this.rightPedal;
         }
+    },
+    
+    startTurningLeft: function(){
+        if(this.turningRight){
+            this.stopTurning();
+        }
+        else if(!this.turningLeft){
+            this.turningLeft = true;
+        }
+    },
+
+    stopTurningLeft: function(){
+        this.turningLeft = false;
+        this.rotate.y = 0;
+    },
+
+    startTurningRight: function(){
+        if(this.turningLeft){
+            this.stopTurning();
+        }
+        else if(!this.turningRight){
+            this.turningRight = true;
+        }
+    },
+    
+    stopTurningRight: function(){
+        this.turningRight = false;
+        this.rotate.y = 0;
+    },
+    
+    turnLeft: function(){
+        this.rotate.y -= Math.PI/180;
+    },
+    
+    turnRight: function(){
+        this.rotate.y += Math.PI/180;
+    },
+    
+    stopTurning: function(){
+        this.stopTurningLeft();
+        this.stopTurningRight();
     }
 });

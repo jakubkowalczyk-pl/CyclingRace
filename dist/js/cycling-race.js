@@ -1,7 +1,7 @@
 /*!
 * CyclingRace v1.0.0
 *
-* Date: 2015-09-13
+* Date: 2015-09-14
 */
 ( function() {
     "use strict";
@@ -112,28 +112,34 @@ PeriodicallyUpdatableObject.prototype = {
 var BikeControl = function(control){
     angular.element(document).bind('keydown', function(event){
         switch(event.keyCode){
-            case 37:
+            case 37: // Left arrow
+                control.bike.turnLeft();
+                break;
+            case 39: // Right arrow
+                control.bike.turnRight();
+                break;
+            case 88: // x
                 control.bike.pressLeftPedal();
                 break;
-            case 39:
+            case 67: // c
                 control.bike.pressRightPedal();
                 break;
-            case 35:
+            case 35: // End
                 control.bike.pressBrake();
                 break;
         }
     }).bind('keyup', function(event){
         switch(event.keyCode){
-            case 37:
+            case 88: // x
                 control.bike.stopPressLeftPedal();
                 break;
-            case 39:
+            case 67: // c
                 control.bike.stopPressRightPedal();
                 break;
-            case 38:
+            case 38: // Up arrow
                 control.bike.rearDerailleurUp();
                 break;
-            case 40:
+            case 40: // Down arrow
                 control.bike.rearDerailleurDown();
                 break;
         }
@@ -173,6 +179,16 @@ var Bike = function(bike){
     this.rearDerailleur = 4;
 
     /**
+     * @type {Translate}
+     */
+    this.translate = new Translate();
+
+    /**
+     * @type {Rotate}
+     */
+    this.rotate = new Rotate();
+
+    /**
      * @type {Pedal}
      */
     this.leftPedal = new Pedal();
@@ -202,6 +218,20 @@ var Bike = function(bike){
     this.pressingRightPedal = false;
 
     /**
+     * Interval
+     * 
+     * @type {number|null}
+     */
+    this.turningLeft = null;
+
+    /**
+     * Interval
+     * 
+     * @type {number|null}
+     */
+    this.turningRight = null;
+
+    /**
      * @type {number}
      */
     this.pressingInterval = 40;
@@ -228,13 +258,13 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
             this.pressingLeftPedal = true;
         }
     },
-
+    
     stopPressLeftPedal: function(){
         this.pressingLeftPedal = false;
         this.cadence = 0;
         this.prevCrankMove = null;
     },
-
+    
     pressRightPedal: function(){
         if(this.pressingLeftPedal){
             this.stopPressPedals();
@@ -249,7 +279,7 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
         this.cadence = 0;
         this.prevCrankMove = null;
     },
-
+    
     rearDerailleurUp: function(){
         this.rearDerailleur = Math.min(this.rearDerailleur+1, this.maxRearDerailleur);
     },
@@ -297,11 +327,16 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
     },
     
     periodicallyUpdate: function(){
-        var pedal = this.getWorkingPedal();
-        
+        var
+            offsetDiffX = this.speed * .001 * Math.sin(this.rotate.y),
+            offsetDiffY = this.speed * .001 * Math.cos(this.rotate.y),
+            pedal = this.getWorkingPedal();
+    
         if(pedal){
             this.rotateCrank(pedal);
         }
+        this.translate.x += offsetDiffX;
+        this.translate.y += offsetDiffY;
     },
     
     /**
@@ -314,6 +349,47 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
         else if(this.pressingRightPedal){
             return this.rightPedal;
         }
+    },
+    
+    startTurningLeft: function(){
+        if(this.turningRight){
+            this.stopTurning();
+        }
+        else if(!this.turningLeft){
+            this.turningLeft = true;
+        }
+    },
+
+    stopTurningLeft: function(){
+        this.turningLeft = false;
+        this.rotate.y = 0;
+    },
+
+    startTurningRight: function(){
+        if(this.turningLeft){
+            this.stopTurning();
+        }
+        else if(!this.turningRight){
+            this.turningRight = true;
+        }
+    },
+    
+    stopTurningRight: function(){
+        this.turningRight = false;
+        this.rotate.y = 0;
+    },
+    
+    turnLeft: function(){
+        this.rotate.y -= Math.PI/180;
+    },
+    
+    turnRight: function(){
+        this.rotate.y += Math.PI/180;
+    },
+    
+    stopTurning: function(){
+        this.stopTurningLeft();
+        this.stopTurningRight();
     }
 });
 
@@ -436,6 +512,21 @@ ResistanceForces.prototype = {
 };
 /**
  * @constructor
+ */
+var Rotate = function(){
+    /**
+     * In radians
+     * 
+     * @type {number}
+     */
+    this.y = 0;
+};
+
+Rotate.prototype = {
+    constructor: Rotate
+};
+/**
+ * @constructor
  * @param {object} route={}
  * @param {number} route.distance
  */
@@ -505,6 +596,24 @@ Timer.prototype = {
 };
 /**
  * @constructor
+ */
+var Translate = function(){
+    /**
+     * @type {number}
+     */
+    this.x = 0;
+    
+    /**
+     * @type {number}
+     */
+    this.y = 0;
+};
+
+Translate.prototype = {
+    constructor: Translate
+};
+/**
+ * @constructor
  * @param {object} control
  * @param {View} control.view
  */
@@ -555,7 +664,7 @@ var View = function( view ){
         width = window.innerWidth,
         height = window.innerHeight;
 
-    this.bike = view.bike;
+    this.bikeModel = view.bike;
     this.loading = view.loading;
 
     this.scene = new THREE.Scene();
@@ -569,33 +678,33 @@ var View = function( view ){
     this.renderer.setSize( width, height );
     this.body.appendChild( this.renderer.domElement );
 
-    this.road.translateZ(0.000002);
+    this.road.translateZ(0.000004);
 
     this.grass.add( this.road );
 
     this.grass.rotation.x = -Math.PI/2;
 
     this.scene.add( this.sky );
-    this.sky.translateY(.5);
+    this.sky.translateY(2);
     this.scene.add( this.grass );
     
-    this.createBike().then(function(){
+    this.createBike().then(function(bike){
         self.loading.markAsCompleted();
+        self.bike = bike;
+        render();
     });
 
     this.camera.position.y = View.CAMERA_POSITION_Y_DEFAULT;
-    this.camera.position.z = 4.99;
-    this.camera.rotateX(-Math.PI/6);
+    this.camera.position.z = 5.1;
             
     function render(){
         var
-            bike = self.bike,
-            offsetDiff = bike.speed * .001,
+            bike = self.bikeModel,
             cameraPosition = self.camera.position,
             cameraDiffDistance = .00008 * Math.abs(Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
-    
-        self.road.texture.offset.y += offsetDiff;
-        self.grass.texture.offset.y += offsetDiff;
+
+        self.grass.position.x = -bike.translate.x;
+        self.grass.position.z = bike.translate.y;
         cameraPosition.y = View.CAMERA_POSITION_Y_DEFAULT + cameraDiffDistance;
         if(bike.leftPedal.position < bike.rightPedal.position){
             cameraPosition.x = .00008 * (Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
@@ -603,11 +712,14 @@ var View = function( view ){
         else{
             cameraPosition.x = .00008 * (Pedal.POSITION_DOWN/2 - Math.min(bike.leftPedal.position, bike.rightPedal.position));            
         }
+        cameraPosition.x += bike.translate.x;
+        self.bike.position.x = bike.translate.x;
+        self.bike.position.y = bike.translate.y;
+        self.camera.rotation.y = -bike.rotate.y;
+        self.bike.rotation.y = bike.rotate.y;
         requestAnimationFrame( render );
         self.renderer.render( self.scene, self.camera );
     }
-
-    render();
             
     this.control = new ViewControl({
         view: this
@@ -624,7 +736,7 @@ View.prototype = {
 
     createSky: function(){
         return new THREE.Mesh(
-                new THREE.PlaneGeometry( 20, 1, 32 ),
+                new THREE.PlaneGeometry( 20, 1, 128 ),
                 new THREE.MeshBasicMaterial({
                     map: (function(){
                         var texture = THREE.ImageUtils.loadTexture( "./img/sky.jpg" );
@@ -705,7 +817,7 @@ View.prototype = {
                 object.rotateOnAxis(new THREE.Vector3(0,1,0), Math.PI);
                 object.position.y = -4.97;
                 object.position.z = .069;
-                deferred.resolve();
+                deferred.resolve(object);
             }
         );
 

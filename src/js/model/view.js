@@ -10,7 +10,7 @@ var View = function( view ){
         width = window.innerWidth,
         height = window.innerHeight;
 
-    this.bike = view.bike;
+    this.bikeModel = view.bike;
     this.loading = view.loading;
 
     this.scene = new THREE.Scene();
@@ -24,33 +24,33 @@ var View = function( view ){
     this.renderer.setSize( width, height );
     this.body.appendChild( this.renderer.domElement );
 
-    this.road.translateZ(0.000002);
+    this.road.translateZ(0.000004);
 
     this.grass.add( this.road );
 
     this.grass.rotation.x = -Math.PI/2;
 
     this.scene.add( this.sky );
-    this.sky.translateY(.5);
+    this.sky.translateY(2);
     this.scene.add( this.grass );
     
-    this.createBike().then(function(){
+    this.createBike().then(function(bike){
         self.loading.markAsCompleted();
+        self.bike = bike;
+        render();
     });
 
     this.camera.position.y = View.CAMERA_POSITION_Y_DEFAULT;
-    this.camera.position.z = 4.99;
-    this.camera.rotateX(-Math.PI/6);
+    this.camera.position.z = 5.1;
             
     function render(){
         var
-            bike = self.bike,
-            offsetDiff = bike.speed * .001,
+            bike = self.bikeModel,
             cameraPosition = self.camera.position,
             cameraDiffDistance = .00008 * Math.abs(Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
-    
-        self.road.texture.offset.y += offsetDiff;
-        self.grass.texture.offset.y += offsetDiff;
+
+        self.grass.position.x = -bike.translate.x;
+        self.grass.position.z = bike.translate.y;
         cameraPosition.y = View.CAMERA_POSITION_Y_DEFAULT + cameraDiffDistance;
         if(bike.leftPedal.position < bike.rightPedal.position){
             cameraPosition.x = .00008 * (Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
@@ -58,11 +58,14 @@ var View = function( view ){
         else{
             cameraPosition.x = .00008 * (Pedal.POSITION_DOWN/2 - Math.min(bike.leftPedal.position, bike.rightPedal.position));            
         }
+        cameraPosition.x += bike.translate.x;
+        self.bike.position.x = bike.translate.x;
+        self.bike.position.y = bike.translate.y;
+        self.camera.rotation.y = -bike.rotate.y;
+        self.bike.rotation.y = bike.rotate.y;
         requestAnimationFrame( render );
         self.renderer.render( self.scene, self.camera );
     }
-
-    render();
             
     this.control = new ViewControl({
         view: this
@@ -79,7 +82,7 @@ View.prototype = {
 
     createSky: function(){
         return new THREE.Mesh(
-                new THREE.PlaneGeometry( 20, 1, 32 ),
+                new THREE.PlaneGeometry( 20, 1, 128 ),
                 new THREE.MeshBasicMaterial({
                     map: (function(){
                         var texture = THREE.ImageUtils.loadTexture( "./img/sky.jpg" );
@@ -160,7 +163,7 @@ View.prototype = {
                 object.rotateOnAxis(new THREE.Vector3(0,1,0), Math.PI);
                 object.position.y = -4.97;
                 object.position.z = .069;
-                deferred.resolve();
+                deferred.resolve(object);
             }
         );
 
