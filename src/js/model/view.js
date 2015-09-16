@@ -41,7 +41,7 @@ var View = function( view ){
     });
 
     this.camera.position.y = View.CAMERA_POSITION_Y_DEFAULT;
-    this.camera.position.z = 5.1;
+    this.camera.position.z = View.CAMERA_POSITION_Z_DEFAULT;
             
     function render(){
         var
@@ -53,14 +53,17 @@ var View = function( view ){
         self.grass.position.z = bike.translate.y;
         cameraPosition.y = View.CAMERA_POSITION_Y_DEFAULT + cameraDiffDistance;
         if(bike.leftPedal.position < bike.rightPedal.position){
-            cameraPosition.x = .00008 * (Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
+            cameraPosition.x = .00008 * Math.cos(bike.rotate.y) * (Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
+            cameraPosition.z = .00008 * Math.sin(bike.rotate.y) * (Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
         }
         else{
-            cameraPosition.x = .00008 * (Pedal.POSITION_DOWN/2 - Math.min(bike.leftPedal.position, bike.rightPedal.position));            
+            cameraPosition.x = .00008 * Math.cos(bike.rotate.y) * (Pedal.POSITION_DOWN/2 - Math.min(bike.leftPedal.position, bike.rightPedal.position));   
+            cameraPosition.z = .00008 * Math.sin(bike.rotate.y) * (Pedal.POSITION_DOWN/2 - Math.min(bike.leftPedal.position, bike.rightPedal.position));            
         }
-        cameraPosition.x += bike.translate.x;
+        cameraPosition.z += -View.BIKE_POSITION_Y_DEFAULT + View.BIKE_CAMERA_DISTANCE * Math.cos(-bike.rotate.y);
+        cameraPosition.x += View.BIKE_CAMERA_DISTANCE * Math.sin(-bike.rotate.y);
         self.bike.position.x = bike.translate.x;
-        self.bike.position.y = bike.translate.y;
+        self.bike.position.y = bike.translate.y + View.BIKE_POSITION_Y_DEFAULT;
         self.camera.rotation.y = -bike.rotate.y;
         self.bike.rotation.y = bike.rotate.y;
         requestAnimationFrame( render );
@@ -76,6 +79,9 @@ var View = function( view ){
 };
 
 View.CAMERA_POSITION_Y_DEFAULT = .2;
+View.CAMERA_POSITION_Z_DEFAULT = 5.1;
+View.BIKE_POSITION_Y_DEFAULT = -4.97;
+View.BIKE_CAMERA_DISTANCE = View.CAMERA_POSITION_Z_DEFAULT + View.BIKE_POSITION_Y_DEFAULT;
 
 View.prototype = {
     body: document.querySelectorAll('body')[0],
@@ -161,7 +167,7 @@ View.prototype = {
                 self.road.add( object );
                 object.rotateOnAxis(new THREE.Vector3(1,0,0), Math.PI/2);
                 object.rotateOnAxis(new THREE.Vector3(0,1,0), Math.PI);
-                object.position.y = -4.97;
+                object.position.y = View.BIKE_POSITION_Y_DEFAULT;
                 object.position.z = .069;
                 deferred.resolve(object);
             }
