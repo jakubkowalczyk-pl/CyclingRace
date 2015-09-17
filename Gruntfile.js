@@ -47,7 +47,7 @@ module.exports = function( grunt ) {
             };
         } )(),
         uglify: {
-            jgallery: {
+            js: {
                 options: {
                     banner: banner
                 },
@@ -71,7 +71,7 @@ module.exports = function( grunt ) {
     grunt.loadNpmTasks( 'grunt-contrib-uglify' );
     grunt.loadNpmTasks( 'grunt-contrib-concat' );
     grunt.loadNpmTasks( 'grunt-contrib-watch' );
-    grunt.registerTask( 'build-js', ['concat:dev','uglify:jgallery'] );
+    grunt.registerTask( 'build-js', ['concat:dev'] );
     grunt.registerTask( 'build-css', ['less:dev','less:min'] );
     grunt.registerTask( 'default', ['build-js', 'build-css'] );
 };
