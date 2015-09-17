@@ -69,16 +69,16 @@ var Bike = function(bike){
     /**
      * Interval
      * 
-     * @type {number|null}
+     * @type {boolean}
      */
-    this.turningLeft = null;
+    this.turningLeft = false;
 
     /**
      * Interval
      * 
-     * @type {number|null}
+     * @type {boolean}
      */
-    this.turningRight = null;
+    this.turningRight = false;
 
     /**
      * @type {number}
