@@ -1,7 +1,7 @@
 /*!
 * CyclingRace v1.0.0
 *
-* Date: 2015-09-16
+* Date: 2015-09-17
 */
 ( function() {
     "use strict";
@@ -220,16 +220,16 @@ var Bike = function(bike){
     /**
      * Interval
      * 
-     * @type {number|null}
+     * @type {boolean}
      */
-    this.turningLeft = null;
+    this.turningLeft = false;
 
     /**
      * Interval
      * 
-     * @type {number|null}
+     * @type {boolean}
      */
-    this.turningRight = null;
+    this.turningRight = false;
 
     /**
      * @type {number}
@@ -668,25 +668,16 @@ var View = function( view ){
     this.loading = view.loading;
 
     this.scene = new THREE.Scene();
+    this.scene.fog = new THREE.FogExp2(0x01ADDF, .1);
     this.camera = new THREE.PerspectiveCamera( 75, width / height, 0.1, 1000 );
-    this.renderer = new THREE.WebGLRenderer();    
+    this.renderer = new THREE.WebGLRenderer({
+        antialias: true
+    });    
     this.loader = new THREE.JSONLoader();
-    this.sky = this.createSky();
-    this.grass = this.createGrass();
-    this.road = this.createRoad();
+    this.createRoute();
 
     this.renderer.setSize( width, height );
     this.body.appendChild( this.renderer.domElement );
-
-    this.road.translateZ(0.000004);
-
-    this.grass.add( this.road );
-
-    this.grass.rotation.x = -Math.PI/2;
-
-    this.scene.add( this.sky );
-    this.sky.translateY(2);
-    this.scene.add( this.grass );
     
     this.createBike().then(function(bike){
         self.loading.markAsCompleted();
@@ -696,6 +687,9 @@ var View = function( view ){
 
     this.camera.position.y = View.CAMERA_POSITION_Y_DEFAULT;
     this.camera.position.z = View.CAMERA_POSITION_Z_DEFAULT;
+    
+    this.renderer.setClearColor(0x01ADDF, 1);
+    this.renderer.setTexture(this.createSky(), 1);
             
     function render(){
         var
@@ -739,7 +733,7 @@ View.BIKE_CAMERA_DISTANCE = View.CAMERA_POSITION_Z_DEFAULT + View.BIKE_POSITION_
 
 View.prototype = {
     body: document.querySelectorAll('body')[0],
-
+    
     createSky: function(){
         return new THREE.Mesh(
                 new THREE.PlaneGeometry( 20, 1, 128 ),
@@ -751,25 +745,31 @@ View.prototype = {
                         texture.wrapT = THREE.RepeatWrapping; 
                         texture.repeat.set( 1, .2001 );
 
-                        return texture;
+                        return texture;  
                     })()
                 })
         );
     },
 
-    createGrass: function(){
+    /**
+     * @param {Object} params
+     * @param {Number} params.width
+     * @param {Number} params.height
+     * @returns {THREE.Mesh}
+     */
+    createGrass: function(params){
         var grassTexture = (function(){
             var texture = THREE.ImageUtils.loadTexture( "./img/grass.jpg" );
 
             texture.wrapS = THREE.RepeatWrapping; 
             texture.wrapT = THREE.RepeatWrapping; 
-            texture.repeat.set( 12, 60 );
+            texture.repeat.set( params.width, params.height*6 );
 
             return texture;
         })();
 
         var grass = new THREE.Mesh(
-            new THREE.PlaneGeometry( 13, 10, 32 ),
+            new THREE.PlaneGeometry( params.width, params.height ),
             new THREE.MeshBasicMaterial({
                 map: grassTexture
             })
@@ -780,19 +780,25 @@ View.prototype = {
         return grass;
     },
 
-    createRoad: function(){
+    /**
+     * @param {Object} params
+     * @param {Number} params.width
+     * @param {Number} params.height
+     * @returns {THREE.Mesh}
+     */
+    createRoad: function(params){        
         var roadTexture = (function(){
             var texture = THREE.ImageUtils.loadTexture( "./img/Asphalt-913.jpg" );
 
             texture.wrapS = THREE.RepeatWrapping; 
             texture.wrapT = THREE.RepeatWrapping; 
-            texture.repeat.set( 2, 60 );
+            texture.repeat.set( params.width*4, params.height*6 );
 
             return texture;
         })();
 
         var road = new THREE.Mesh(
-            new THREE.PlaneGeometry( .5, 10, 32 ),
+            new THREE.PlaneGeometry( params.width, params.height ),
             new THREE.MeshBasicMaterial({
                 map: roadTexture
             })
@@ -801,6 +807,21 @@ View.prototype = {
         road.texture = roadTexture;
 
         return road;
+    },
+    
+    createRoute: function(){
+        this.grass = this.createGrass({
+            width: 25,
+            height: 100
+        });
+        this.grass.rotation.x = -Math.PI/2;
+        this.road = this.createRoad({
+            width: .5,
+            height: 100
+        }); 
+        this.road.translateZ(0.000004);
+        this.grass.add( this.road );
+        this.scene.add( this.grass ); 
     },
     
     /**
