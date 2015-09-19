@@ -14,20 +14,25 @@ var View = function( view ){
     this.loading = view.loading;
 
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.FogExp2(0x01ADDF, .1);
+    this.scene.fog = new THREE.FogExp2(0x35B4E0, .05);
     this.camera = new THREE.PerspectiveCamera( 75, width / height, 0.1, 1000 );
     this.renderer = new THREE.WebGLRenderer({
         antialias: true
-    });    
+    });
     this.loader = new THREE.JSONLoader();
     this.createRoute();
 
     this.renderer.setSize( width, height );
     this.body.appendChild( this.renderer.domElement );
+
+    this.skyView = new SkyView();
     
     this.createBike().then(function(bike){
-        self.loading.markAsCompleted();
         self.bike = bike;
+        
+        return self.skyView.load();
+    }).then(function(){
+        self.loading.markAsCompleted();
         render();
     });
 
@@ -35,7 +40,6 @@ var View = function( view ){
     this.camera.position.z = View.CAMERA_POSITION_Z_DEFAULT;
     
     this.renderer.setClearColor(0x01ADDF, 1);
-    this.renderer.setTexture(this.createSky(), 1);
             
     function render(){
         var
@@ -61,6 +65,9 @@ var View = function( view ){
         self.camera.rotation.y = -bike.rotate.y;
         self.bike.rotation.y = bike.rotate.y;
         requestAnimationFrame( render );
+        self.renderer.autoClear = false;
+        self.renderer.clear();
+        self.renderer.render( self.skyView.getScene(), self.skyView.getCamera() );
         self.renderer.render( self.scene, self.camera );
     }
             
@@ -79,23 +86,6 @@ View.BIKE_CAMERA_DISTANCE = View.CAMERA_POSITION_Z_DEFAULT + View.BIKE_POSITION_
 
 View.prototype = {
     body: document.querySelectorAll('body')[0],
-    
-    createSky: function(){
-        return new THREE.Mesh(
-                new THREE.PlaneGeometry( 20, 1, 128 ),
-                new THREE.MeshBasicMaterial({
-                    map: (function(){
-                        var texture = THREE.ImageUtils.loadTexture( "./img/sky.jpg" );
-
-                        texture.wrapS = THREE.RepeatWrapping; 
-                        texture.wrapT = THREE.RepeatWrapping; 
-                        texture.repeat.set( 1, .2001 );
-
-                        return texture;  
-                    })()
-                })
-        );
-    },
 
     /**
      * @param {Object} params
