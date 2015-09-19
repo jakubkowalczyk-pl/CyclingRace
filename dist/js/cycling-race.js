@@ -726,14 +726,16 @@ var View = function( view ){
         antialias: true
     });
     this.loader = new THREE.JSONLoader();
-    this.createRoute();
+    this.textureLoader = new THREE.TextureLoader();
 
     this.renderer.setSize( width, height );
     this.body.appendChild( this.renderer.domElement );
 
     this.skyView = new SkyView();
     
-    this.createBike().then(function(bike){
+    this.createRoute().then(function(){
+        return self.createBike();
+    }).then(function(bike){
         self.bike = bike;
         
         return self.skyView.load();
@@ -792,78 +794,83 @@ View.BIKE_CAMERA_DISTANCE = View.CAMERA_POSITION_Z_DEFAULT + View.BIKE_POSITION_
 
 View.prototype = {
     body: document.querySelectorAll('body')[0],
-
+    
     /**
      * @param {Object} params
      * @param {Number} params.width
      * @param {Number} params.height
-     * @returns {THREE.Mesh}
+     * @returns {Promise}
      */
     createGrass: function(params){
-        var grassTexture = (function(){
-            var texture = THREE.ImageUtils.loadTexture( "./img/grass.jpg" );
-
+        var deferred = Q.defer();
+    
+        this.textureLoader.load( "./img/grass.jpg", function(texture){
             texture.wrapS = THREE.RepeatWrapping; 
             texture.wrapT = THREE.RepeatWrapping; 
             texture.repeat.set( params.width, params.height*6 );
+            deferred.resolve(new THREE.Mesh(
+                new THREE.PlaneGeometry( params.width, params.height ),
+                new THREE.MeshBasicMaterial({
+                    map: texture
+                })
+            ));
+        });
 
-            return texture;
-        })();
-
-        var grass = new THREE.Mesh(
-            new THREE.PlaneGeometry( params.width, params.height ),
-            new THREE.MeshBasicMaterial({
-                map: grassTexture
-            })
-        );
-
-        grass.texture = grassTexture;
-
-        return grass;
+        return deferred.promise;
     },
 
     /**
      * @param {Object} params
      * @param {Number} params.width
      * @param {Number} params.height
-     * @returns {THREE.Mesh}
+     * @returns {Promise}
      */
-    createRoad: function(params){        
-        var roadTexture = (function(){
-            var texture = THREE.ImageUtils.loadTexture( "./img/Asphalt-913.jpg" );
-
+    createRoad: function(params){
+        var deferred = Q.defer();
+    
+        this.textureLoader.load( "./img/Asphalt-913.jpg", function(texture){
             texture.wrapS = THREE.RepeatWrapping; 
             texture.wrapT = THREE.RepeatWrapping; 
             texture.repeat.set( params.width*4, params.height*6 );
+            deferred.resolve(new THREE.Mesh(
+                new THREE.PlaneGeometry( params.width, params.height ),
+                new THREE.MeshBasicMaterial({
+                    map: texture
+                })
+            ));
+        });
 
-            return texture;
-        })();
-
-        var road = new THREE.Mesh(
-            new THREE.PlaneGeometry( params.width, params.height ),
-            new THREE.MeshBasicMaterial({
-                map: roadTexture
-            })
-        );
-
-        road.texture = roadTexture;
-
-        return road;
+        return deferred.promise;
     },
     
+    /**
+     * @returns {Promise}
+     */
     createRoute: function(){
-        this.grass = this.createGrass({
+        var
+            deferred = Q.defer(),
+            self = this;
+        
+        this.createGrass({
             width: 25,
             height: 100
+        }).then(function(object){
+            self.grass = object;
+            self.grass.rotation.x = -Math.PI/2;
+            
+            return self.createRoad({
+                width: .5,
+                height: 100
+            });
+        }).then(function(object){
+            self.road = object;
+            self.road.translateZ(0.000004);
+            self.grass.add( self.road );
+            self.scene.add( self.grass );
+            deferred.resolve();
         });
-        this.grass.rotation.x = -Math.PI/2;
-        this.road = this.createRoad({
-            width: .5,
-            height: 100
-        }); 
-        this.road.translateZ(0.000004);
-        this.grass.add( this.road );
-        this.scene.add( this.grass ); 
+        
+        return deferred.promise;
     },
     
     /**
