@@ -186,6 +186,7 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
         }
         this.translate.x += offsetDiffX;
         this.translate.y += offsetDiffY;
+        this.resistanceForces.ratio = this.onRoad ? .92 : .75;
     },
     
     /**

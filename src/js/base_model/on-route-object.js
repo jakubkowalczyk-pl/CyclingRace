@@ -24,9 +24,14 @@ var OnRouteObject = function(onRouteObject){
     /**
      * @type {ResistanceForces}
      */
-    this.gravity = new ResistanceForces({
+    this.resistanceForces = new ResistanceForces({
         object: this
     });
+    
+    /**
+     * @type {Boolean}
+     */
+    this.onRoad = true;
     
     /**
      * @type {Timer}

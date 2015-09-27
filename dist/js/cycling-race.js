@@ -1,7 +1,7 @@
 /*!
 * CyclingRace v1.0.0
 *
-* Date: 2015-09-19
+* Date: 2015-09-27
 */
 ( function() {
     "use strict";
@@ -33,9 +33,14 @@ var OnRouteObject = function(onRouteObject){
     /**
      * @type {ResistanceForces}
      */
-    this.gravity = new ResistanceForces({
+    this.resistanceForces = new ResistanceForces({
         object: this
     });
+    
+    /**
+     * @type {Boolean}
+     */
+    this.onRoad = true;
     
     /**
      * @type {Timer}
@@ -337,6 +342,7 @@ Bike.prototype = angular.extend(OnRouteObject.prototype, {
         }
         this.translate.x += offsetDiffX;
         this.translate.y += offsetDiffY;
+        this.resistanceForces.ratio = this.onRoad ? .92 : .75;
     },
     
     /**
@@ -497,13 +503,20 @@ Race.prototype = {
  * @param {number} resistanceForces.object.speed
  */
 var ResistanceForces = function(resistanceForces){
+    var self = this;
+    
     /**
      * @type {number}
      */
     this.object = resistanceForces.object;
+    
+    /**
+     * @type {Number}
+     */
+    this.ratio = .92;
 
     setInterval(function(){
-        resistanceForces.object.speed *= .92;
+        resistanceForces.object.speed *= self.ratio;
     }, 800);
 };
 
@@ -719,7 +732,7 @@ var View = function( view ){
     this.bikeModel = view.bike;
     this.loading = view.loading;
 
-    this.scene = new THREE.Scene();
+    this.scene = new Physijs.Scene();
     this.scene.fog = new THREE.FogExp2(0x35B4E0, .05);
     this.camera = new THREE.PerspectiveCamera( 75, width / height, 0.1, 1000 );
     this.renderer = new THREE.WebGLRenderer({
@@ -749,21 +762,28 @@ var View = function( view ){
     
     this.renderer.setClearColor(0x01ADDF, 1);
             
+    this.raycaster = new THREE.Raycaster();
+    
     function render(){
         var
             bike = self.bikeModel,
             cameraPosition = self.camera.position,
             cameraDiffDistance = .00008 * Math.abs(Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
 
+        self.raycaster.setFromCamera( { x: 0, y: -1 }, self.camera );
+	self.bikeModel.onRoad = self.raycaster.intersectObjects( [self.road] ).length === 1;
         self.grass.position.x = -bike.translate.x;
         self.grass.position.z = bike.translate.y;
         cameraPosition.y = View.CAMERA_POSITION_Y_DEFAULT + cameraDiffDistance;
+        if(!bike.onRoad){
+           cameraPosition.y += Math.random() * .007; 
+        }
         if(bike.leftPedal.position < bike.rightPedal.position){
             cameraPosition.x = .00008 * Math.cos(bike.rotate.y) * (Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
             cameraPosition.z = .00008 * Math.sin(bike.rotate.y) * (Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
         }
         else{
-            cameraPosition.x = .00008 * Math.cos(bike.rotate.y) * (Pedal.POSITION_DOWN/2 - Math.min(bike.leftPedal.position, bike.rightPedal.position));   
+            cameraPosition.x = .00008 * Math.cos(bike.rotate.y) * (Pedal.POSITION_DOWN/2 - Math.min(bike.leftPedal.position, bike.rightPedal.position));
             cameraPosition.z = .00008 * Math.sin(bike.rotate.y) * (Pedal.POSITION_DOWN/2 - Math.min(bike.leftPedal.position, bike.rightPedal.position));            
         }
         cameraPosition.z += -View.BIKE_POSITION_Y_DEFAULT + View.BIKE_CAMERA_DISTANCE * Math.cos(-bike.rotate.y);
@@ -778,7 +798,7 @@ var View = function( view ){
         self.renderer.render( self.skyView.getScene(), self.skyView.getCamera() );
         self.renderer.render( self.scene, self.camera );
     }
-            
+    
     this.control = new ViewControl({
         view: this
     });
@@ -808,7 +828,7 @@ View.prototype = {
             texture.wrapS = THREE.RepeatWrapping; 
             texture.wrapT = THREE.RepeatWrapping; 
             texture.repeat.set( params.width, params.height*6 );
-            deferred.resolve(new THREE.Mesh(
+            deferred.resolve(new Physijs.BoxMesh(
                 new THREE.PlaneGeometry( params.width, params.height ),
                 new THREE.MeshBasicMaterial({
                     map: texture
@@ -832,7 +852,7 @@ View.prototype = {
             texture.wrapS = THREE.RepeatWrapping; 
             texture.wrapT = THREE.RepeatWrapping; 
             texture.repeat.set( params.width*4, params.height*6 );
-            deferred.resolve(new THREE.Mesh(
+            deferred.resolve(new Physijs.BoxMesh(
                 new THREE.PlaneGeometry( params.width, params.height ),
                 new THREE.MeshBasicMaterial({
                     map: texture
@@ -864,7 +884,7 @@ View.prototype = {
             });
         }).then(function(object){
             self.road = object;
-            self.road.translateZ(0.000004);
+            self.road.translateZ(0.0004);
             self.grass.add( self.road );
             self.scene.add( self.grass );
             deferred.resolve();
@@ -885,7 +905,7 @@ View.prototype = {
             './models/bike.json',
             function ( geometry, materials ) {
                 var material = new THREE.MeshFaceMaterial( materials );
-                var object = new THREE.Mesh( geometry, material );
+                var object = new Physijs.BoxMesh( geometry, material );
 
                 object.scale.x = object.scale.y = object.scale.z = .0125;
                 self.road.add( object );

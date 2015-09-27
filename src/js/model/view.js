@@ -13,7 +13,7 @@ var View = function( view ){
     this.bikeModel = view.bike;
     this.loading = view.loading;
 
-    this.scene = new THREE.Scene();
+    this.scene = new Physijs.Scene();
     this.scene.fog = new THREE.FogExp2(0x35B4E0, .05);
     this.camera = new THREE.PerspectiveCamera( 75, width / height, 0.1, 1000 );
     this.renderer = new THREE.WebGLRenderer({
@@ -43,21 +43,28 @@ var View = function( view ){
     
     this.renderer.setClearColor(0x01ADDF, 1);
             
+    this.raycaster = new THREE.Raycaster();
+    
     function render(){
         var
             bike = self.bikeModel,
             cameraPosition = self.camera.position,
             cameraDiffDistance = .00008 * Math.abs(Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
 
+        self.raycaster.setFromCamera( { x: 0, y: -1 }, self.camera );
+	self.bikeModel.onRoad = self.raycaster.intersectObjects( [self.road] ).length === 1;
         self.grass.position.x = -bike.translate.x;
         self.grass.position.z = bike.translate.y;
         cameraPosition.y = View.CAMERA_POSITION_Y_DEFAULT + cameraDiffDistance;
+        if(!bike.onRoad){
+           cameraPosition.y += Math.random() * .007; 
+        }
         if(bike.leftPedal.position < bike.rightPedal.position){
             cameraPosition.x = .00008 * Math.cos(bike.rotate.y) * (Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
             cameraPosition.z = .00008 * Math.sin(bike.rotate.y) * (Math.min(bike.leftPedal.position, bike.rightPedal.position) - Pedal.POSITION_DOWN/2);
         }
         else{
-            cameraPosition.x = .00008 * Math.cos(bike.rotate.y) * (Pedal.POSITION_DOWN/2 - Math.min(bike.leftPedal.position, bike.rightPedal.position));   
+            cameraPosition.x = .00008 * Math.cos(bike.rotate.y) * (Pedal.POSITION_DOWN/2 - Math.min(bike.leftPedal.position, bike.rightPedal.position));
             cameraPosition.z = .00008 * Math.sin(bike.rotate.y) * (Pedal.POSITION_DOWN/2 - Math.min(bike.leftPedal.position, bike.rightPedal.position));            
         }
         cameraPosition.z += -View.BIKE_POSITION_Y_DEFAULT + View.BIKE_CAMERA_DISTANCE * Math.cos(-bike.rotate.y);
@@ -72,7 +79,7 @@ var View = function( view ){
         self.renderer.render( self.skyView.getScene(), self.skyView.getCamera() );
         self.renderer.render( self.scene, self.camera );
     }
-            
+    
     this.control = new ViewControl({
         view: this
     });
@@ -102,7 +109,7 @@ View.prototype = {
             texture.wrapS = THREE.RepeatWrapping; 
             texture.wrapT = THREE.RepeatWrapping; 
             texture.repeat.set( params.width, params.height*6 );
-            deferred.resolve(new THREE.Mesh(
+            deferred.resolve(new Physijs.BoxMesh(
                 new THREE.PlaneGeometry( params.width, params.height ),
                 new THREE.MeshBasicMaterial({
                     map: texture
@@ -126,7 +133,7 @@ View.prototype = {
             texture.wrapS = THREE.RepeatWrapping; 
             texture.wrapT = THREE.RepeatWrapping; 
             texture.repeat.set( params.width*4, params.height*6 );
-            deferred.resolve(new THREE.Mesh(
+            deferred.resolve(new Physijs.BoxMesh(
                 new THREE.PlaneGeometry( params.width, params.height ),
                 new THREE.MeshBasicMaterial({
                     map: texture
@@ -158,7 +165,7 @@ View.prototype = {
             });
         }).then(function(object){
             self.road = object;
-            self.road.translateZ(0.000004);
+            self.road.translateZ(0.0004);
             self.grass.add( self.road );
             self.scene.add( self.grass );
             deferred.resolve();
@@ -179,7 +186,7 @@ View.prototype = {
             './models/bike.json',
             function ( geometry, materials ) {
                 var material = new THREE.MeshFaceMaterial( materials );
-                var object = new THREE.Mesh( geometry, material );
+                var object = new Physijs.BoxMesh( geometry, material );
 
                 object.scale.x = object.scale.y = object.scale.z = .0125;
                 self.road.add( object );
